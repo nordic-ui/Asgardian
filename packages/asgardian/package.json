@@ -1,0 +1,43 @@
+{
+  "name": "@repo/asgardian",
+  "version": "0.0.0",
+  "author": "Kevin Østerkilde <kevin@oesterkilde.dk>",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run --passWithNoTests --reporter verbose",
+    "test:watch": "vitest watch --passWithNoTests --reporter verbose",
+    "lint": "eslint \"src/**/*.ts\"",
+    "type-check": "tsc --noEmit",
+    "diagnostics": "tsc --diagnostics",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "keywords": [
+    "asgardian",
+    "authentication"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "dist/**"
+  ],
+  "prettier": {
+    "semi": false,
+    "printWidth": 100,
+    "singleQuote": true
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20",
+    "tsup": "^7.1.0",
+    "typescript": "5.5.4",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^0.33.0"
+  }
+}
