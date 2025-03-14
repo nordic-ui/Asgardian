@@ -45,7 +45,7 @@
     "singleQuote": true
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@nordic-ui/typescript-config": "workspace:*",
     "@types/node": "^20",
     "tsup": "^7.1.0",
     "typescript": "5.5.4",

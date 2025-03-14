@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/base.json",
+  "extends": "@nordic-ui/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "types": ["node"]
