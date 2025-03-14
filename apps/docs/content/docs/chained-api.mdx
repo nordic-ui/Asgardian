@@ -1,0 +1,143 @@
+---
+title: Chained API
+---
+
+# Chained API
+
+In this section, we will explore how to use the chained API in Asgardian to define and manage permissions in a more fluent and readable manner. The chained API allows you to chain multiple methods together to build complex permission rules.
+
+## Introduction to Chained API
+
+The chained API in Asgardian provides a chainable interface for defining rules, making it easier to read and maintain your permission logic. It allows you to specify actions, resources, conditions, and other parameters in a sequential and structured way.
+
+## Basic Chained API Usage
+
+Let's start with basic examples of how to use the chained API to define simple rules.
+
+### Define Basic Rules
+
+You can define rules using the `can` and `cannot` methods in a chained manner.
+
+```typescript
+import { createAbility } from 'asgardian';
+
+const ability = createAbility();
+
+ability
+  .can('read', 'Post')
+  .can('update', 'Post');
+```
+
+### Define Rules with Conditions
+
+You can also define rules with conditions using the chained API.
+
+```typescript
+ability
+  .can('read', 'Post', (post) => post.published)
+  .cannot('delete', 'Post', (post, context) => post.authorId !== context.userId);
+```
+
+## Advanced Chained API Usage
+
+The chained API allows you to build more complex permission rules with ease. Let's explore some advanced usage examples.
+
+### Chaining Multiple Actions
+
+You can chain multiple actions in a single rule.
+
+```typescript
+ability
+  .can(['create', 'update', 'delete'], 'Post')
+  .can('manage', 'all');
+```
+
+### Combining Roles and Conditions
+
+You can combine roles and conditions in a chained manner.
+
+```typescript
+ability
+  .can('manage', 'all', (resource, context) => context.user.roles.includes('admin'))
+  .can('read', 'Post', (resource, context) => context.user.roles.includes('user'))
+  .can(['create', 'update'], 'Post', (resource, context) => 
+    context.user.roles.includes('admin') || context.user.roles.includes('moderator'))
+  .can('delete', 'Post', (resource, context) => context.user.roles.includes('admin'));
+```
+
+### Nested Chained Rules
+
+You can nest chained rules to create more complex permission structures.
+
+```typescript
+ability
+  .can('read', 'Post', (post) => post.published)
+  .can('update', 'Post', (post, context) => 
+    post.authorId === context.userId || context.user.roles.includes('admin'))
+  .cannot('delete', 'Post', (post, context) => post.authorId !== context.userId);
+```
+
+## Using Chained API with Roles
+
+The chained API makes it easier to define rules based on user roles.
+
+### Define Roles and Rules
+
+```typescript
+const roles = {
+  admin: ['create', 'read', 'update', 'delete', 'manage'],
+  user: ['read'],
+  moderator: ['create', 'update'],
+};
+
+ability
+  .can('manage', 'all', (resource, context) => context.user.roles.includes('admin'))
+  .can('read', 'Post', (resource, context) => context.user.roles.includes('user'))
+  .can(['create', 'update'], 'Post', (resource, context) => 
+    context.user.roles.includes('admin') || context.user.roles.includes('moderator'));
+```
+
+### Check Permissions
+
+```typescript
+const adminUser = {
+  id: 123,
+  roles: ['admin'],
+};
+
+const userUser = {
+  id: 456,
+  roles: ['user'],
+};
+
+const moderatorUser = {
+  id: 789,
+  roles: ['moderator'],
+};
+
+// Check permissions for admin
+console.log(ability.isAllowed('manage', 'Post', null, { user: adminUser })); // true
+console.log(ability.isAllowed('create', 'Post', null, { user: adminUser })); // true
+console.log(ability.isAllowed('read', 'Post', null, { user: adminUser })); // true
+console.log(ability.isAllowed('delete', 'Post', null, { user: adminUser })); // true
+
+// Check permissions for user
+console.log(ability.isAllowed('manage', 'Post', null, { user: userUser })); // false
+console.log(ability.isAllowed('create', 'Post', null, { user: userUser })); // false
+console.log(ability.isAllowed('read', 'Post', null, { user: userUser })); // true
+console.log(ability.isAllowed('delete', 'Post', null, { user: userUser })); // false
+
+// Check permissions for moderator
+console.log(ability.isAllowed('manage', 'Post', null, { user: moderatorUser })); // false
+console.log(ability.isAllowed('create', 'Post', null, { user: moderatorUser })); // true
+console.log(ability.isAllowed('read', 'Post', null, { user: moderatorUser })); // true
+console.log(ability.isAllowed('delete', 'Post', null, { user: moderatorUser })); // false
+```
+
+## Summary
+
+In this section, we learned how to use the chained API in Asgardian to define and manage permissions in a more fluent and readable manner. The chained API allows you to build complex permission rules efficiently.
+
+> [!TIP]
+>
+> For more advanced use cases and best practices, refer to the [Advanced Usage](/docs/advanced-usage) section.

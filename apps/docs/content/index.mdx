@@ -1,0 +1,95 @@
+---
+title: Introduction
+description: Just a simple authorization library
+asIndexPage: true
+---
+
+# Authorization with Asgardian 
+
+Welcome to **Asgardian**, a powerful and flexible authorization library for managing permissions in your applications. Designed with simplicity and scalability in mind, Asgardian allows you to define and enforce access rules for resources and actions with ease.
+
+## What is Asgardian?
+
+Asgardian is a TypeScript library that provides a robust and intuitive way to manage user permissions. It allows you to define rules that specify which users can perform certain actions on specific resources. This is particularly useful in applications where fine-grained access control is necessary.
+
+## Key Features
+
+- **Flexible Resource Definitions**: Define resources as strings, classes, or functions.
+- **Condition-Based Permissions**: Apply conditions to rules to enforce more granular access control.
+- **Chained API**: Define rules using a fluent and chainable API.
+- **Role-Based Permissions**: Easily define and enforce role-based access control.
+
+## Installation
+
+To get started with Asgardian, you need to install it via npm or yarn.
+
+```sh npm2yarn
+npm i @nordic-ui/asgardian
+```
+
+## Basic Usage
+
+Here's a simple example to get you started with Asgardian.
+
+### Defining Rules
+
+```ts
+import { createAbility } from 'asgardian';
+
+const ability = createAbility();
+
+ability.can(['read', 'create'], 'Post');
+ability.cannot('delete', 'Post');
+```
+
+### Checking Permissions
+
+You can check if a user is allowed to perform an action on a resource using the `isAllowed` method.
+
+```ts
+const canReadPost = ability.isAllowed('read', 'Post');
+console.log(canReadPost); // true
+
+const canDeletePost = ability.isAllowed('delete', 'Post');
+console.log(canDeletePost); // false
+```
+
+### Conditions
+
+You can add conditions to your rules to make them more specific.
+
+```ts
+ability.can('read', 'Post', { published: true });
+
+const publishedPost = { published: true };
+const draftPost = { published: false };
+
+console.log(ability.isAllowed('read', 'Post', publishedPost)); // true
+console.log(ability.isAllowed('read', 'Post', draftPost)); // false
+```
+
+### Role-Based Permissions
+
+Define rules based on user roles to enforce role-based access control.
+
+```ts
+const userAbility = createAbility();
+
+userAbility.can('read', 'Post');
+userAbility.can(['create', 'update', 'delete'], 'Post', { authorId: 123 });
+
+const canCreatePost = userAbility.isAllowed(['create', 'update', 'delete'], 'Post', { authorId: 123 });
+console.log(canCreatePost); // true
+
+const canDeletePostOtherUser = userAbility.isAllowed(['create', 'update', 'delete'], 'Post', { authorId: 456 });
+console.log(canDeletePostOtherUser); // false
+```
+
+## Next Steps
+
+Now that you have a basic understanding of Asgardian, you can dive deeper into the documentation to learn about advanced features and best practices.
+
+> [!TIP]
+>
+> Asgardian is designed to be flexible and can be adapted to fit the specific needs of your application.
+> Feel free to reach out to the community or open an issue if you have any questions or suggestions.

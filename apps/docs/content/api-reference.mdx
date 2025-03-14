@@ -1,0 +1,113 @@
+---
+title: API Reference
+---
+
+# API Reference
+
+In this section, we provide a detailed reference of the Asgardian API, including all available methods, their parameters, and usage examples.
+
+## Overview
+
+Asgardian provides a comprehensive set of methods to define, manage, and check permissions. Here, you will find detailed documentation for each method.
+
+## Methods
+
+### `createAbility`
+
+Creates a new instance of the ability that can be used to define rules and check permissions.
+
+#### Syntax
+
+```ts
+createAbility()
+```
+
+#### Returns
+
+An instance of the `Ability` class.
+
+#### Example
+
+```ts
+import { createAbility } from 'asgardian';
+
+const ability = createAbility();
+```
+
+### `can`
+
+Defines a rule allowing a specific action on a resource.
+
+#### Syntax
+
+```ts
+ability.can(action: string, resource: string, condition?: (resource: any, context: any) => boolean)
+```
+
+#### Parameters
+
+- `action` (string): The action to be allowed (e.g., `read`, `update`).
+- `resource` (string): The resource on which the action can be performed (e.g., `Post`, `Comment`).
+- `condition` (function, optional): A function that evaluates whether the rule applies given the resource and context.
+
+#### Example
+
+```ts
+ability.can('read', 'Post');
+ability.can('update', 'Post', (post, context) => post.authorId === context.userId);
+```
+
+### `cannot`
+
+Defines a rule disallowing a specific action on a resource.
+
+#### Syntax
+
+```ts
+ability.cannot(action: string, resource: string, condition?: (resource: any, context: any) => boolean)
+```
+
+#### Parameters
+
+- `action` (string): The action to be disallowed (e.g., `delete`, `manage`).
+- `resource` (string): The resource on which the action cannot be performed (e.g., `Post`, `Comment`).
+- `condition` (function, optional): A function that evaluates whether the rule applies given the resource and context.
+
+#### Example
+
+```ts
+ability.cannot('delete', 'Post');
+ability.cannot('delete', 'Post', (post, context) => post.authorId !== context.userId);
+```
+
+### `isAllowed`
+
+Checks if a specific action is allowed for a given resource and context.
+
+#### Syntax
+
+```ts
+ability.isAllowed(action: string, resource: string, resourceInstance: any, context: any)
+```
+
+#### Parameters
+
+- `action` (string): The action to check (e.g., `read`, `update`).
+- `resource` (string): The resource for which the action is being checked (e.g., `Post`, `Comment`).
+- `resourceInstance` (any, optional): An instance of the resource, if applicable.
+- `context` (object): The context in which the action is being checked, typically including the user.
+
+#### Example
+
+```ts
+const user = { id: 123, roles: ['admin'] };
+console.log(ability.isAllowed('manage', 'all', null, { user })); // true
+```
+
+## Summary
+
+This section provides a detailed reference of the Asgardian API. For more information and examples, refer to the [Introduction](/), [Rules and Conditions](/docs/rules-and-conditions), and [Role-Based Permissions](/docs/role-based-permissions) sections.
+
+> [!TIP]
+>
+> For more advanced usage and best practices, refer to the [Advanced Usage](/docs/advanced-usage) section.

@@ -1,0 +1,187 @@
+---
+title: Rules and Conditions
+asIndexPage: true
+---
+
+# Rules and Conditions
+
+In this section, we will explore how to define rules and use conditions in Asgardian to manage user permissions effectively.
+
+## Defining Basic Rules
+
+Rules in Asgardian are defined using the `can` and `cannot` methods. These methods allow you to specify actions, resources, and optional conditions.
+
+### Basic `can` Rule
+
+The `can` method is used to define permissions that a user can perform.
+
+```ts
+import { createAbility } from 'asgardian';
+
+const ability = createAbility();
+
+// Allow reading posts
+ability.can('read', 'Post');
+```
+
+### Basic `cannot` Rule
+
+The `cannot` method is used to define permissions that a user cannot perform.
+
+```ts
+// Disallow deleting posts
+ability.cannot('delete', 'Post');
+```
+
+### Multiple Actions
+
+You can define multiple actions in a single rule using an array.
+
+```ts
+// Allow creating, updating, and deleting posts
+ability.can(['create', 'update', 'delete'], 'Post');
+```
+
+### All Actions
+
+To define all actions in a single rule, use the `'manage'` keyword.
+
+```ts
+// Allow managing all actions
+ability.can('manage', 'Post');
+```
+
+### All Resources
+
+To define a rule that applies to all resources, use the `'all'` keyword.
+
+```ts
+// Allow managing all resources
+ability.can('manage', 'all');
+```
+
+## Using Conditions
+
+Conditions allow you to specify more granular rules based on specific criteria. Conditions can be objects or functions.
+
+### Object Conditions
+
+You can use objects to define conditions. Asgardian will check the resource object against the condition object.
+
+```ts
+// Allow reading only published posts
+ability.can('read', 'Post', { published: true });
+
+const publishedPost = { published: true };
+const draftPost = { published: false };
+
+console.log(ability.isAllowed('read', 'Post', publishedPost)); // true
+console.log(ability.isAllowed('read', 'Post', draftPost)); // false
+```
+
+### Function Conditions
+
+For more complex logic, you can use functions to define conditions. The function should return `true` if the condition is met.
+
+```ts
+// Allow updating posts only if the author ID matches
+ability.can('update', 'Post', (post, context) => post.authorId === context.userId);
+
+const post = { authorId: 123 };
+const context = { userId: 123 };
+
+console.log(ability.isAllowed('update', 'Post', post, context)); // true
+
+const differentContext = { userId: 456 };
+console.log(ability.isAllowed('update', 'Post', post, differentContext)); // false
+```
+
+## Combining Rules
+
+You can combine multiple rules to create complex permission structures.
+
+### Combining `can` and `cannot`
+
+You can mix `can` and `cannot` rules to define specific permissions.
+
+```ts
+// Allow reading posts
+ability.can('read', 'Post');
+
+// Disallow deleting posts
+ability.cannot('delete', 'Post');
+
+const canReadPost = ability.isAllowed('read', 'Post');
+console.log(canReadPost); // true
+
+const canDeletePost = ability.isAllowed('delete', 'Post');
+console.log(canDeletePost); // false
+```
+
+### Nested Conditions
+
+You can nest conditions to create more complex rules.
+
+```ts
+// Allow updating posts only if they are published and the author ID matches
+ability.can('update', 'Post', { published: true }, (post, context) => post.authorId === context.userId);
+
+const publishedPost = { published: true, authorId: 123 };
+const context = { userId: 123 };
+
+console.log(ability.isAllowed('update', 'Post', publishedPost, context)); // true
+
+const draftPost = { published: false, authorId: 123 };
+console.log(ability.isAllowed('update', 'Post', draftPost, context)); // false
+
+const differentContext = { userId: 456 };
+console.log(ability.isAllowed('update', 'Post', publishedPost, differentContext)); // false
+```
+
+## Advanced Conditions
+
+For advanced use cases, you can use more sophisticated logic in your conditions.
+
+### Using Context
+
+You can pass additional context to the conditions to make them more dynamic.
+
+```ts
+// Allow updating posts only if the user is an admin or the author ID matches
+ability.can('update', 'Post', (post, context) => context.isAdmin || post.authorId === context.userId);
+
+const post = { authorId: 123 };
+const adminContext = { isAdmin: true };
+const userContext = { isAdmin: false, userId: 123 };
+const differentContext = { isAdmin: false, userId: 456 };
+
+console.log(ability.isAllowed('update', 'Post', post, adminContext)); // true
+console.log(ability.isAllowed('update', 'Post', post, userContext)); // true
+console.log(ability.isAllowed('update', 'Post', post, differentContext)); // false
+```
+
+### Using Roles
+
+You can define rules based on user roles to enforce role-based access control.
+
+```ts
+// Allow reading posts for all users
+ability.can('read', 'Post');
+
+// Allow creating, updating, and deleting posts only for admins
+ability.can(['create', 'update', 'delete'], 'Post', (post, context) => context.userRoles.includes('admin'));
+
+const adminContext = { userRoles: ['admin'] };
+const userContext = { userRoles: ['user'] };
+
+console.log(ability.isAllowed('create', 'Post', null, adminContext)); // true
+console.log(ability.isAllowed('create', 'Post', null, userContext)); // false
+```
+
+## Summary
+
+In this section, we learned how to define basic rules and use conditions to enforce more granular access control using Asgardian. Conditions can be simple objects or complex functions, allowing you to tailor your permission rules to fit your application's needs.
+
+> [!TIP]
+>
+> For more advanced use cases and best practices, refer to the [Advanced Usage](/docs/advanced-usage) section.

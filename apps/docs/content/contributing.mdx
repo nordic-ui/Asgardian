@@ -1,0 +1,95 @@
+---
+title: Contributing
+---
+
+# Contributing
+
+We welcome contributions to Asgardian! Whether you have ideas for new features, bug fixes, or documentation improvements, your help is greatly appreciated. This section provides guidelines on how to contribute effectively.
+
+## Code of Conduct
+
+Before you start contributing, please read and adhere to our [Code of Conduct](/code-of-conduct).
+
+## Getting Started
+
+1. **Fork the Repository**: Fork the Asgardian repository on GitHub.
+2. **Clone the Repository**: Clone your forked repository to your local machine.
+   ```bash
+   git clone https://github.com/nordic-ui/Asgardian.git
+   ```
+3. **Install Dependencies**: Navigate to the project directory and install the necessary dependencies.
+   ```bash
+   cd asgardian
+   npm install
+   ```
+4. **Create a Branch**: Create a new branch for your changes.
+   ```bash
+   git checkout -b feature-branch
+   ```
+5. **Make Changes**: Make your changes to the codebase.
+
+## Making Changes
+
+### Code Style
+
+Asgardian follows a specific code style to ensure consistency. Make sure to adhere to the following guidelines:
+
+- **Linting**: Use ESLint to maintain consistent code style.
+  ```bash
+  npm run lint
+  ```
+- **TypeScript**: Write type-safe code using TypeScript.
+- **Formatting**: Use Prettier for code formatting.
+  ```bash
+  npm run format
+  ```
+
+### Testing
+
+Asgardian uses Jest for testing. Ensure that your changes are covered by tests and that all existing tests pass.
+
+1. **Write Tests**: Write tests for your changes.
+2. **Run Tests**: Run the test suite to ensure everything works as expected.
+   ```bash
+   npm test
+   ```
+
+### Documentation
+
+If your changes affect the public API or add new features, update the documentation accordingly.
+
+1. **Update MDX Files**: Modify the relevant MDX files in the `docs` directory.
+2. **Build Documentation**: Build the documentation to ensure your changes render correctly.
+   ```bash
+   npm run docs:build
+   ```
+
+## Submitting Changes
+
+1. **Commit Changes**: Commit your changes with a descriptive commit message.
+   ```bash
+   git commit -m "Add feature: [Your Feature Description]"
+   ```
+2. **Push Changes**: Push your changes to your forked repository.
+   ```bash
+   git push origin feature-branch
+   ```
+3. **Create a Pull Request**: Open a pull request to the main repository. Provide a clear description of your changes and any related issues.
+
+## Code Reviews
+
+Your pull request will be reviewed by the maintainers. Be open to feedback and be prepared to make necessary changes.
+
+## Community Guidelines
+
+- **Be Respectful**: Treat all community members with respect and kindness.
+- **Communicate Clearly**: Clearly describe your changes and the problem they solve.
+- **Help Others**: Help other contributors by reviewing their pull requests and providing constructive feedback.
+
+## Summary
+
+Contributing to Asgardian is a great way to help improve the library and learn more about permission management. Follow the guidelines in this section to make your contributions smooth and effective.
+
+> [!TIP]
+>
+> For more information, refer to the [Frequently Asked Questions](/faq) and [Advanced Usage](/docs/advanced-usage) sections.

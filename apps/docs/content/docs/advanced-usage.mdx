@@ -1,0 +1,188 @@
+---
+title: Advanced Usage
+---
+
+# Advanced Usage
+
+In this section, we will explore advanced usage patterns and best practices for using Asgardian to define and manage permissions. This includes handling dynamic rules, integrating with databases, and optimizing performance.
+
+## Handling Dynamic Rules
+
+Sometimes, permission rules need to be dynamic and can change based on various factors such as user properties, resource states, or external conditions.
+
+### Example of Dynamic Rules
+
+```ts
+import { createAbility } from 'asgardian';
+
+const ability = createAbility();
+
+// Dynamic rule based on user properties
+ability
+  .can('read', 'Post', (post, context) => post.published || context.user.roles.includes('admin'));
+
+// Dynamic rule based on resource state
+ability
+  .can('update', 'Post', (post, context) => post.authorId === context.userId || context.user.roles.includes('moderator'));
+```
+
+## Integrating with Databases
+
+For applications that require permission rules to be stored and managed in a database, Asgardian can be integrated with various database systems.
+
+### Example with Database Integration
+
+Assume you have a database that stores roles and permissions. You can fetch these rules and apply them dynamically.
+
+```ts
+import { createAbility } from 'asgardian';
+import { fetchUserRoles, fetchResourcePermissions } from './database';
+
+const ability = createAbility();
+
+// Fetch roles and permissions from the database
+async function setupAbility(userId) {
+  const userRoles = await fetchUserRoles(userId);
+  const resourcePermissions = await fetchResourcePermissions();
+
+  resourcePermissions.forEach(({ action, resource, condition }) => {
+    ability.can(action, resource, (resource, context) => {
+      return userRoles.some(role => condition.includes(role));
+    });
+  });
+}
+
+// Example usage
+setupAbility(123).then(() => {
+  const user = { id: 123, roles: ['admin'] };
+  console.log(ability.isAllowed('manage', 'all', null, { user })); // true
+});
+```
+
+## Optimizing Performance
+
+Performance is crucial when dealing with complex permission rules, especially in large applications. Here are some tips to optimize performance.
+
+### Caching Rules
+
+Caching permission rules can significantly improve performance, especially if the rules do not change frequently.
+
+```ts
+import { createAbility } from 'asgardian';
+import { fetchUserRoles, fetchResourcePermissions } from './database';
+import { LRUCache } from 'lru-cache';
+
+const cache = new LRUCache({ max: 1000 });
+
+const ability = createAbility();
+
+async function setupAbility(userId) {
+  let userRoles = cache.get(`userRoles:${userId}`);
+  if (!userRoles) {
+    userRoles = await fetchUserRoles(userId);
+    cache.set(`userRoles:${userId}`, userRoles);
+  }
+
+  let resourcePermissions = cache.get('resourcePermissions');
+  if (!resourcePermissions) {
+    resourcePermissions = await fetchResourcePermissions();
+    cache.set('resourcePermissions', resourcePermissions);
+  }
+
+  resourcePermissions.forEach(({ action, resource, condition }) => {
+    ability.can(action, resource, (resource, context) => {
+      return userRoles.some(role => condition.includes(role));
+    });
+  });
+}
+
+// Example usage
+setupAbility(123).then(() => {
+  const user = { id: 123, roles: ['admin'] };
+  console.log(ability.isAllowed('manage', 'all', null, { user })); // true
+});
+```
+
+### Batch Checking
+
+Instead of checking permissions one by one, batch checking can reduce the number of function calls and improve performance.
+
+```ts
+const actions = ['read', 'update', 'delete'];
+const resources = ['Post', 'Comment'];
+
+const isAllowed = actions.reduce((acc, action) => {
+  resources.forEach(resource => {
+    acc[`${action}-${resource}`] = ability.isAllowed(action, resource, null, { user });
+  });
+  return acc;
+}, {});
+
+console.log(isAllowed);
+```
+
+## Best Practices
+
+Here are some best practices to follow when using Asgardian for permission management.
+
+### Keep Rules DRY
+
+Avoid duplicating rules. Use conditions and role-based permissions to keep your rules DRY (Don't Repeat Yourself).
+
+```ts
+ability
+  .can('read', 'Post', (post, context) => post.published || context.user.roles.includes('admin'))
+  .can('update', 'Post', (post, context) => post.authorId === context.userId || context.user.roles.includes('moderator'));
+```
+
+### Use Roles for Grouping
+
+Use roles to group permissions. This makes it easier to manage and update permissions.
+
+```ts
+const roles = {
+  admin: ['create', 'read', 'update', 'delete', 'manage'],
+  user: ['read'],
+  moderator: ['create', 'update'],
+};
+
+ability
+  .can('manage', 'all', (resource, context) => context.user.roles.includes('admin'))
+  .can('read', 'Post', (resource, context) => context.user.roles.includes('user'))
+  .can(['create', 'update'], 'Post', (resource, context) => 
+    context.user.roles.includes('admin') || context.user.roles.includes('moderator'));
+```
+
+### Log and Monitor Permissions
+
+Logging and monitoring permissions can help you debug and audit your permission rules.
+
+```ts
+import { createAbility, logger } from 'asgardian';
+
+const ability = createAbility();
+
+ability
+  .can('read', 'Post', (post, context) => {
+    const allowed = post.published || context.user.roles.includes('admin');
+    if (!allowed) {
+      logger.warn(`User ${context.user.id} attempted to read unpublished post ${post.id}`);
+    }
+    return allowed;
+  })
+  .can('update', 'Post', (post, context) => {
+    const allowed = post.authorId === context.userId || context.user.roles.includes('moderator');
+    if (!allowed) {
+      logger.warn(`User ${context.user.id} attempted to update post ${post.id}`);
+    }
+    return allowed;
+  });
+```
+
+## Summary
+
+In this section, we explored advanced usage patterns and best practices for using Asgardian to define and manage permissions. This includes handling dynamic rules, integrating with databases, and optimizing performance.
+
+> [!TIP]
+>
+> For more information and examples, refer to the [API Reference](/api-reference) and [FAQ](/faq) sections.
