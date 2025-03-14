@@ -16,8 +16,6 @@ const footer = <Footer>MIT {new Date().getFullYear()} © Nordic-UI.</Footer>;
 const RootLayout: FC<PropsWithChildren> = async ({ children }) => {
   const pageMap = await getPageMap();
 
-  console.log({ pageMap });
-
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <Head>

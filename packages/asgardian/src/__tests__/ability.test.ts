@@ -57,8 +57,6 @@ describe('Ability', () => {
     ability.cannot('delete', 'Post')
     ability.can('delete', 'all') // this should take precedence over the previous rules since `all` includes `Post`
 
-    // console.log(ability.rules)
-
     // Test permissions with action exceptions
     expect(ability.isAllowed(['create', 'update', 'delete'], 'Post')).toBe(true)
 
