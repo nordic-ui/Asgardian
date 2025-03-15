@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { createAbility } from '../ability'
 
-type User = { roles: string[] }
+type User = { roles: string[]; id?: number }
 
-const admin: User = { roles: ['admin', 'editor', 'viewer'] }
-const editor: User = { roles: ['editor', 'viewer'] }
-const viewer: User = { roles: ['viewer'] }
+const admin: User = { roles: ['admin', 'editor', 'viewer'], id: 1 }
+const editor: User = { roles: ['editor', 'viewer'], id: 2 }
+const viewer: User = { roles: ['viewer'], id: 3 }
 const unknown: User = { roles: [] }
 
 describe('Ability', () => {
@@ -16,11 +16,14 @@ describe('Ability', () => {
       if (user.roles.includes('viewer')) {
         ability.can('read', 'Post', { published: true })
         ability.can(['read', 'create'], 'Comment')
+        ability.can(['update', 'delete'], 'Comment', { authorId: user.id })
       }
 
       if (user.roles.includes('editor')) {
-        ability.can('manage', 'Post')
-        ability.can('manage', 'Comment')
+        ability.can(['read', 'create'], 'Post')
+        ability.can(['update', 'delete'], 'Post', { authorId: user.id })
+        ability.can(['read', 'create'], 'Comment')
+        ability.can(['update', 'delete'], 'Comment', { authorId: user.id, postId: 1 })
       }
 
       if (user.roles.includes('admin')) {
@@ -30,18 +33,30 @@ describe('Ability', () => {
       return ability
     }
 
-    expect(permissions(admin).isAllowed(['read', 'create', 'delete'], 'Post')).toBe(true)
-    expect(permissions(admin).isAllowed(['read', 'create', 'delete'], 'Comment')).toBe(true)
+    // Admin
+    expect(permissions(admin).isAllowed('manage', 'Post')).toBe(true)
+    expect(permissions(admin).isAllowed('manage', 'Comment')).toBe(true)
 
-    expect(permissions(editor).isAllowed(['read', 'create', 'delete'], 'Post')).toBe(true)
-    expect(permissions(editor).isAllowed(['read', 'create', 'delete'], 'Comment')).toBe(true)
+    // Editor
+    expect(permissions(editor).isAllowed(['read', 'create'], 'Post')).toBe(true)
+    expect(permissions(editor).isAllowed(['update', 'delete'], 'Post', { authorId: 2 })).toBe(true)
+    expect(permissions(editor).isAllowed(['update', 'delete'], 'Post', { authorId: 1 })).toBe(false)
+    expect(permissions(editor).isAllowed(['read', 'create'], 'Comment')).toBe(true)
+    expect(
+      permissions(editor).isAllowed(['update', 'delete'], 'Comment', { authorId: 2, postId: 1 }),
+    ).toBe(true)
+    expect(
+      permissions(editor).isAllowed(['update', 'delete'], 'Comment', { authorId: 1, postId: 2 }),
+    ).toBe(false)
 
+    // Viewer
     expect(permissions(viewer).isAllowed('read', 'Post', { published: true })).toBe(true)
     expect(permissions(viewer).isAllowed('read', 'Post', { published: false })).toBe(false)
     expect(permissions(viewer).isAllowed(['create', 'delete'], 'Post')).toBe(false)
     expect(permissions(viewer).isAllowed(['read', 'create'], 'Comment')).toBe(true)
     expect(permissions(viewer).isAllowed('delete', 'Comment')).toBe(false)
 
+    // No role
     expect(permissions(unknown).isAllowed('manage', 'Post')).toBe(false)
     expect(permissions(unknown).isAllowed('manage', 'Comment')).toBe(false)
   })
