@@ -41,20 +41,20 @@ Defines a rule allowing a specific action on a resource.
 #### Syntax
 
 ```ts
-ability.can(action: string, resource: string, condition?: (resource: any, context: any) => boolean)
+ability.can(action: string, resource: string, conditions?: Record<PropertyKey, unknown> => boolean)
 ```
 
 #### Parameters
 
-- `action` (string): The action to be allowed (e.g., `read`, `update`).
+- `action` (string | string[]): The action to be allowed (e.g., `read`, `update`).
 - `resource` (string): The resource on which the action can be performed (e.g., `Post`, `Comment`).
-- `condition` (function, optional): A function that evaluates whether the rule applies given the resource and context.
+- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
 
 #### Example
 
 ```ts
 ability.can('read', 'Post');
-ability.can('update', 'Post', (post, context) => post.authorId === context.userId);
+ability.can(['update', 'delete'], 'Post', { authorId: user.id });
 ```
 
 ### `cannot`
@@ -64,20 +64,19 @@ Defines a rule disallowing a specific action on a resource.
 #### Syntax
 
 ```ts
-ability.cannot(action: string, resource: string, condition?: (resource: any, context: any) => boolean)
+ability.cannot(action: string, resource: string, conditions?: Record<PropertyKey, unknown> => boolean)
 ```
 
 #### Parameters
 
-- `action` (string): The action to be disallowed (e.g., `delete`, `manage`).
+- `action` (string | string[]): The action to be disallowed (e.g., `delete`, `manage`).
 - `resource` (string): The resource on which the action cannot be performed (e.g., `Post`, `Comment`).
-- `condition` (function, optional): A function that evaluates whether the rule applies given the resource and context.
+- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
 
 #### Example
 
 ```ts
 ability.cannot('delete', 'Post');
-ability.cannot('delete', 'Post', (post, context) => post.authorId !== context.userId);
 ```
 
 ### `isAllowed`
@@ -87,21 +86,42 @@ Checks if a specific action is allowed for a given resource and context.
 #### Syntax
 
 ```ts
-ability.isAllowed(action: string, resource: string, resourceInstance: any, context: any)
+ability.isAllowed(action: string, resource: string)
 ```
 
 #### Parameters
 
-- `action` (string): The action to check (e.g., `read`, `update`).
+- `action` (string | string[]): The action to check (e.g., `read`, `update`).
 - `resource` (string): The resource for which the action is being checked (e.g., `Post`, `Comment`).
-- `resourceInstance` (any, optional): An instance of the resource, if applicable.
-- `context` (object): The context in which the action is being checked, typically including the user.
+- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
 
 #### Example
 
 ```ts
 const user = { id: 123, roles: ['admin'] };
-console.log(ability.isAllowed('manage', 'all', null, { user })); // true
+ability.isAllowed('manage', 'all'); // true
+```
+
+### `notAllowed`
+
+Checks if a specific action is not allowed for a given resource and context.
+
+#### Syntax
+
+```ts
+ability.notAllowed(action: string, resource: string)
+```
+
+#### Parameters
+
+- `action` (string | string[]): The action to check (e.g., `read`, `update`).
+- `resource` (string): The resource for which the action is being checked (e.g., `Post`, `Comment`).
+- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
+
+#### Example
+
+```ts
+ability.notAllowed('update', 'Post'); // true
 ```
 
 ## Summary
