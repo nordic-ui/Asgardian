@@ -10,7 +10,9 @@ export const metadata = {
   description: "Just a simple authorization library",
 };
 
-const navbar = <Navbar logo={<b>Asgardian</b>} />;
+const navbar = (
+  <Navbar logo={<img src="/logo.svg" alt="Asgardian" width="150" />} />
+);
 const footer = <Footer>MIT {new Date().getFullYear()} © Nordic-UI.</Footer>;
 
 const RootLayout: FC<PropsWithChildren> = async ({ children }) => {
