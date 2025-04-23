@@ -22,6 +22,15 @@ const RootLayout: FC<PropsWithChildren> = async ({ children }) => {
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <Head>
         {/* Your additional tags should be passed as `children` of `<Head>` element */}
+        <meta property="og:image" content="/meta.png" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+
+        <meta name="twitter:image" content="/meta.png" />
+        <meta name="twitter:image:type" content="image/png" />
+        <meta name="twitter:image:width" content="1200" />
+        <meta name="twitter:image:height" content="630" />
       </Head>
 
       <body>
