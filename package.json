@@ -1,6 +1,6 @@
 {
   "name": "asgardian-mono",
-  "license": "MIT",
+  "private": true,
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
