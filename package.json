@@ -1,6 +1,7 @@
 {
-  "name": "asgardian",
-  "private": true,
+  "name": "@nordic-ui/asgardian",
+  "version": "0.0.1",
+  "private": false,
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
