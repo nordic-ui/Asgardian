@@ -1,19 +1,5 @@
 {
-  "name": "@nordic-ui/asgardian",
-  "description": "A simple authorization library",
-  "version": "0.0.1",
-  "author": "Kevin Østerkilde <kevin@oesterkilde.dk>",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "types": "./dist/index.d.ts",
-  "keywords": [
-    "validation",
-    "validator",
-    "schema validation"
-  ],
-  "files": [
-    "dist/**"
-  ],
+  "name": "asgardian-mono",
   "license": "MIT",
   "scripts": {
     "build": "turbo build",
@@ -30,10 +16,5 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
-  },
-  "prettier": {
-    "semi": false,
-    "printWidth": 100,
-    "singleQuote": true
   }
 }
