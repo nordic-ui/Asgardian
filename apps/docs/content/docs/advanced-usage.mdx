@@ -13,7 +13,7 @@ Sometimes, permission rules need to be dynamic and can change based on various f
 ### Example of Dynamic Rules
 
 ```ts
-import { createAbility } from 'asgardian';
+import { createAbility } from '@nordic-ui/asgardian';
 
 const ability = createAbility();
 
@@ -35,7 +35,7 @@ For applications that require permission rules to be stored and managed in a dat
 Assume you have a database that stores roles and permissions. You can fetch these rules and apply them dynamically.
 
 ```ts
-import { createAbility } from 'asgardian';
+import { createAbility } from '@nordic-ui/asgardian';
 import { fetchUserRoles, fetchResourcePermissions } from './database';
 
 const ability = createAbility();
@@ -68,7 +68,7 @@ Performance is crucial when dealing with complex permission rules, especially in
 Caching permission rules can significantly improve performance, especially if the rules do not change frequently.
 
 ```ts
-import { createAbility } from 'asgardian';
+import { createAbility } from '@nordic-ui/asgardian';
 import { fetchUserRoles, fetchResourcePermissions } from './database';
 import { LRUCache } from 'lru-cache';
 
@@ -158,7 +158,7 @@ ability
 Logging and monitoring permissions can help you debug and audit your permission rules.
 
 ```ts
-import { createAbility, logger } from 'asgardian';
+import { createAbility, logger } from '@nordic-ui/asgardian';
 
 const ability = createAbility();
 
