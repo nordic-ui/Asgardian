@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { createAbility } from '../ability'
+
+import { createAbility } from '../core/ability'
 
 describe('Ability', () => {
   it('should allow an action on a resource when permitted', () => {

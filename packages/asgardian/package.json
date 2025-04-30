@@ -32,7 +32,7 @@
   ],
   "tsup": {
     "entry": [
-      "src/ability.ts"
+      "src/index.ts"
     ],
     "splitting": false,
     "sourcemap": true,
