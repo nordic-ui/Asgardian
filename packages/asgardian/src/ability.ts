@@ -1,24 +1,5 @@
-export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete'
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export type Resource = 'all' | string | Function
-
-export type Condition = Record<PropertyKey, unknown>
-
-export type Rule = {
-  action: Action | Action[]
-  resource: Resource
-  inverted?: boolean
-  conditions?: Condition
-}
-
-type CreateAbility = {
-  can: (action: Action | Action[], resource: Resource, conditions?: Condition) => CreateAbility
-  cannot: (action: Action, resource: Resource, conditions?: Condition) => CreateAbility
-  isAllowed: (action: Action | Action[], resource: Resource, conditions?: Condition) => boolean
-  notAllowed: (action: Action | Action[], resource: Resource, conditions?: Condition) => boolean
-  rules: Rule[]
-}
+import { Action, CreateAbility, Rule } from './types'
+import { checkConditionValue } from './utils'
 
 export const createAbility = (): CreateAbility => {
   const rules: Rule[] = []
@@ -97,7 +78,9 @@ export const createAbility = (): CreateAbility => {
         if (
           !rule.inverted &&
           (!rule.conditions ||
-            Object.entries(rule.conditions).every(([key, value]) => conditions?.[key] === value))
+            Object.entries(rule.conditions).every(([key, value]) =>
+              checkConditionValue(value, conditions?.[key]),
+            ))
         ) {
           result = { isAllowed: true, rule }
         } else {
