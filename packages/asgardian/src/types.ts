@@ -3,19 +3,19 @@ export type RuleValue = unknown
 export type ConditionValue = unknown
 
 // Operator types
-export interface OperatorValue<T = unknown> extends Array<T> {
-  __type: symbol
-}
+export type OperatorValue = unknown
+export type TypedOperatorValue<T = OperatorValue> = T[] & { __type: symbol }
+export type OperatorFunction<T = OperatorValue> = (...values: T[]) => TypedOperatorValue<T>
 
 // Logical operator types
-export type LogicalOperatorValue = OperatorValue<ConditionValue>
-export type ArrayOperatorValue = OperatorValue<ConditionValue[]>
-export type ComparisonOperatorValue = OperatorValue<number>
-export type StringOperatorValue = OperatorValue<string>
-export type RegexOperatorValue = OperatorValue<RegExp>
-export type DateOperatorValue = OperatorValue<Date | string>
-export type DaysOperatorValue = OperatorValue<number>
-export type DateRangeOperatorValue = OperatorValue<[Date | string, Date | string]>
+export type LogicalOperatorValue = TypedOperatorValue<ConditionValue>
+export type ArrayOperatorValue = TypedOperatorValue<ConditionValue[]>
+export type ComparisonOperatorValue = TypedOperatorValue<number>
+export type StringOperatorValue = TypedOperatorValue<string>
+export type RegexOperatorValue = TypedOperatorValue<RegExp>
+export type DateOperatorValue = TypedOperatorValue<Date | string>
+export type DaysOperatorValue = TypedOperatorValue<number>
+export type DateRangeOperatorValue = TypedOperatorValue<[Date | string, Date | string]>
 
 export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type

@@ -1,5 +1,5 @@
-import { Action, CreateAbility, Rule } from './types'
-import { checkConditionValue } from './utils'
+import type { Action, CreateAbility, Rule } from '../types'
+import { checkConditionValue } from './chechConditionValue'
 
 export const createAbility = (): CreateAbility => {
   const rules: Rule[] = []

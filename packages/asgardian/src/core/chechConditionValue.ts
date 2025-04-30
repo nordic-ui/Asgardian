@@ -1,6 +1,8 @@
+import type { ConditionValue, RuleValue } from '../types'
 import {
   isArrayOperator,
   isComparisonOperator,
+  isDateLike,
   isDateOperator,
   isDateRangeOperator,
   isDaysOperator,
@@ -8,16 +10,8 @@ import {
   isOperator,
   isRegexOperator,
   isStringOperator,
-} from './operators'
-import { ConditionValue, RuleValue } from './types'
-
-const normalizeDate = (date: Date | string): Date => {
-  return typeof date === 'string' ? new Date(date) : date
-}
-
-function isDateLike(value: unknown): value is Date | string {
-  return value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)))
-}
+} from './guards'
+import { normalizeDate } from './utils'
 
 export const checkConditionValue = (
   ruleValue: RuleValue,

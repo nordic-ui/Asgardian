@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { createAbility } from '../ability'
+import { createAbility } from '../core/ability'
 import * as operators from '../operators'
 
 describe('Ability operators', () => {
