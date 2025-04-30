@@ -66,27 +66,27 @@ export const checkConditionValue = (
 
   // Comparison operators
   if (isComparisonOperator(ruleValue) && isOperator(ruleValue, 'gt')) {
-    if (!ruleValue[0]) return false
+    if (ruleValue[0] === undefined) return false
     return typeof conditionValue === 'number' && conditionValue > ruleValue[0]
   }
 
   if (isComparisonOperator(ruleValue) && isOperator(ruleValue, 'gte')) {
-    if (!ruleValue[0]) return false
+    if (ruleValue[0] === undefined) return false
     return typeof conditionValue === 'number' && conditionValue >= ruleValue[0]
   }
 
   if (isComparisonOperator(ruleValue) && isOperator(ruleValue, 'lt')) {
-    if (!ruleValue[0]) return false
+    if (ruleValue[0] === undefined) return false
     return typeof conditionValue === 'number' && conditionValue < ruleValue[0]
   }
 
   if (isComparisonOperator(ruleValue) && isOperator(ruleValue, 'lte')) {
-    if (!ruleValue[0]) return false
+    if (ruleValue[0] === undefined) return false
     return typeof conditionValue === 'number' && conditionValue <= ruleValue[0]
   }
 
   if (isComparisonOperator(ruleValue) && isOperator(ruleValue, 'between')) {
-    if (!ruleValue[0] || !ruleValue[1]) return false
+    if (ruleValue[0] === undefined || ruleValue[1] === undefined) return false
     return (
       typeof conditionValue === 'number' &&
       conditionValue >= ruleValue[0] &&
@@ -111,17 +111,17 @@ export const checkConditionValue = (
 
   // Array operators
   if (isArrayOperator(ruleValue) && isOperator(ruleValue, 'includesAll')) {
-    if (!ruleValue[0]) return false
-    return Array.isArray(conditionValue) && ruleValue[0]?.every((v) => conditionValue.includes(v))
+    if (ruleValue[0] === undefined) return false
+    return Array.isArray(conditionValue) && ruleValue[0].every((v) => conditionValue.includes(v))
   }
   if (isArrayOperator(ruleValue) && isOperator(ruleValue, 'includesAny')) {
-    if (!ruleValue[0]) return false
-    return Array.isArray(conditionValue) && ruleValue[0]?.some((v) => conditionValue.includes(v))
+    if (ruleValue[0] === undefined) return false
+    return Array.isArray(conditionValue) && ruleValue[0].some((v) => conditionValue.includes(v))
   }
 
   // Date operators
   if (isDateOperator(ruleValue) && isOperator(ruleValue, 'before')) {
-    if (!conditionValue || !isDateLike(conditionValue) || !ruleValue[0]) return false
+    if (!conditionValue || !isDateLike(conditionValue) || ruleValue[0] === undefined) return false
 
     const compareDate = normalizeDate(ruleValue[0])
     const checkDate = normalizeDate(conditionValue)
@@ -130,7 +130,7 @@ export const checkConditionValue = (
   }
 
   if (isDateOperator(ruleValue) && isOperator(ruleValue, 'after')) {
-    if (!conditionValue || !isDateLike(conditionValue) || !ruleValue[0]) return false
+    if (!conditionValue || !isDateLike(conditionValue) || ruleValue[0] === undefined) return false
 
     const compareDate = normalizeDate(ruleValue[0])
     const checkDate = normalizeDate(conditionValue)
@@ -139,7 +139,7 @@ export const checkConditionValue = (
   }
 
   if (isDateRangeOperator(ruleValue) && isOperator(ruleValue, 'within')) {
-    if (!conditionValue || !isDateLike(conditionValue) || !ruleValue[0]) return false
+    if (!conditionValue || !isDateLike(conditionValue) || ruleValue[0] === undefined) return false
 
     const [startDate, endDate] = ruleValue[0]
     if (!startDate || !endDate) return false
@@ -152,7 +152,7 @@ export const checkConditionValue = (
   }
 
   if (isDaysOperator(ruleValue) && isOperator(ruleValue, 'pastDays')) {
-    if (!conditionValue || !isDateLike(conditionValue) || !ruleValue[0]) return false
+    if (!conditionValue || !isDateLike(conditionValue) || ruleValue[0] === undefined) return false
 
     const checkDate = normalizeDate(conditionValue as Date | string)
     const now = new Date()
@@ -166,7 +166,7 @@ export const checkConditionValue = (
   }
 
   if (isDaysOperator(ruleValue) && isOperator(ruleValue, 'futureDays')) {
-    if (!conditionValue || !isDateLike(conditionValue) || !ruleValue[0]) return false
+    if (!conditionValue || !isDateLike(conditionValue) || ruleValue[0] === undefined) return false
 
     const checkDate = normalizeDate(conditionValue)
     const compareDate = new Date()
