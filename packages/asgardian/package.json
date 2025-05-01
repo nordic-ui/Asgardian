@@ -8,8 +8,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "test": "vitest run --passWithNoTests --reporter verbose",
-    "test:watch": "vitest watch --passWithNoTests --reporter verbose",
+    "test": "vitest run --passWithNoTests --reporter verbose --typecheck",
+    "test:watch": "vitest watch --passWithNoTests --reporter verbose --typecheck",
     "lint": "eslint \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
     "diagnostics": "tsc --diagnostics",
@@ -49,6 +49,6 @@
     "tsup": "^7.1.0",
     "typescript": "5.5.4",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "^0.33.0"
+    "vitest": "^3.1.2"
   }
 }
