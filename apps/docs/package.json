@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "next": "^15.1.0",
