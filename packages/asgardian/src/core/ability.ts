@@ -1,9 +1,22 @@
 import type { Action, CreateAbility, Rule } from '../types'
 import { checkConditionValue } from './chechConditionValue'
 
-export const createAbility = (): CreateAbility => {
-  const rules: Rule[] = []
-  const self = {} as CreateAbility
+/**
+ * Creates a new ability instance with customizable actions and resources
+ * @template ExtendedActions - Extended action types
+ * @template ExtendedResources - Extended resource types
+ * @returns A new ability instance
+ *
+ * @example
+ * const ability = createAbility<'publish', 'Post'>()
+ * ability.can('publish', 'Post')
+ */
+export const createAbility = <
+  ExtendedActions extends string = 'manage' | 'create' | 'read' | 'update' | 'delete',
+  ExtendedResources extends string = 'all',
+>(): CreateAbility<ExtendedActions, ExtendedResources> => {
+  const rules: Rule<ExtendedActions, ExtendedResources>[] = []
+  const self = {} as CreateAbility<ExtendedActions, ExtendedResources>
 
   self.can = (action, resource, conditions) => {
     if (Array.isArray(action)) {
@@ -51,15 +64,14 @@ export const createAbility = (): CreateAbility => {
     const actionsToCheck = Array.isArray(action) ? action : [action]
 
     // Function to check if a rule matches the action and resource
-    const ruleMatches = (rule: Rule, actionsToCheck: Action[]) => {
+    const ruleMatches = (
+      rule: Rule<ExtendedActions, ExtendedResources>,
+      actionsToCheck: Action<ExtendedActions>[],
+    ) => {
       const ruleActions = Array.isArray(rule.action) ? rule.action : [rule.action]
       let resourceMatches = false
 
-      if (typeof rule.resource === 'string') {
-        resourceMatches = rule.resource === resource
-      } else if (typeof rule.resource === 'function') {
-        resourceMatches = resource instanceof rule.resource || resource === rule.resource
-      }
+      resourceMatches = rule.resource === resource
 
       if (rule.resource === 'all') {
         resourceMatches = true

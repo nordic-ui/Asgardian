@@ -4,7 +4,7 @@ import { createAbility } from '../core/ability'
 
 describe('Ability', () => {
   it('should allow an action on a resource when permitted', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can('read', 'Post')
 
@@ -12,13 +12,13 @@ describe('Ability', () => {
   })
 
   it('should not allow an action on a resource when not permitted', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     expect(ability.isAllowed('read', 'Post')).toBe(false)
   })
 
   it('should handle multiple actions in a single rule', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can(['read', 'create'], 'Post')
 
@@ -28,7 +28,7 @@ describe('Ability', () => {
   })
 
   it('should handle all resources', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post' | 'Comment'>()
 
     ability.can('manage', 'all')
 
@@ -39,7 +39,7 @@ describe('Ability', () => {
   })
 
   it('should handle all resources with exceptions', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post' | 'Comment'>()
 
     ability.can('manage', 'all')
     ability.cannot('delete', 'Comment') // this should take precedence over the previous rule since it's declared later
@@ -52,7 +52,7 @@ describe('Ability', () => {
   })
 
   it('should handle all actions with exceptions', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post' | 'Comment'>()
 
     ability.can('manage', 'Post')
     ability.cannot('delete', 'Post')
@@ -66,28 +66,8 @@ describe('Ability', () => {
     expect(ability.isAllowed('delete', 'Comment')).toBe(true) // TODO: Figure out if this is the behaviour I want
   })
 
-  it('should handle class-based resources', () => {
-    const ability = createAbility()
-
-    class Post {}
-
-    ability.can('read', Post)
-
-    expect(ability.isAllowed('read', Post)).toBe(true)
-  })
-
-  it('should handle function-based resources', () => {
-    const ability = createAbility()
-
-    function Post() {}
-
-    ability.can('read', Post)
-
-    expect(ability.isAllowed('read', Post)).toBe(true)
-  })
-
   it('should respect conditions when checking permissions', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can('read', 'Post', { published: true })
 
@@ -98,8 +78,18 @@ describe('Ability', () => {
     expect(ability.isAllowed('read', 'Post', draftPost)).toBe(false)
   })
 
+  it('should handle multiple conditions', () => {
+    const ability = createAbility<never, 'Post'>()
+
+    ability.can('manage', 'Post', { authorId: 123, published: true })
+
+    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBe(true)
+    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: false })).toBe(false)
+    expect(ability.isAllowed('manage', 'Post', { authorId: 456 })).toBe(false)
+  })
+
   it('should handle cannot rules', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can('manage', 'Post')
     ability.cannot('delete', 'Post')
@@ -109,14 +99,14 @@ describe('Ability', () => {
   })
 
   it('should handle role-based permissions', () => {
-    const adminAbility = createAbility()
+    const adminAbility = createAbility<never, 'Post' | 'Comment'>()
 
     adminAbility.can('manage', 'all')
 
     expect(adminAbility.isAllowed('create', 'Post')).toBe(true)
     expect(adminAbility.isAllowed('delete', 'Comment')).toBe(true)
 
-    const userAbility = createAbility()
+    const userAbility = createAbility<never, 'Post' | 'Comment'>()
 
     userAbility.can('read', 'Post')
     userAbility.can(['create', 'update', 'delete'], 'Post', { authorId: 123 })
@@ -126,7 +116,7 @@ describe('Ability', () => {
     expect(userAbility.isAllowed(['create', 'delete'], 'Post', { authorId: 123 })).toBe(true)
     expect(userAbility.isAllowed(['create', 'delete'], 'Post', { authorId: 456 })).toBe(false)
 
-    const visitorAbility = createAbility()
+    const visitorAbility = createAbility<never, 'Post' | 'Comment'>()
 
     visitorAbility.can('read', 'Post', { published: true })
     visitorAbility.can('read', 'Comment')
@@ -137,7 +127,9 @@ describe('Ability', () => {
   })
 
   it('should handle chained ability definitions', () => {
-    const ability = createAbility().can('read', 'Post').can(['read', 'create'], 'Comment')
+    const ability = createAbility<never, 'Post' | 'Comment'>()
+      .can('read', 'Post')
+      .can(['read', 'create'], 'Comment')
 
     expect(ability.isAllowed('read', 'Post')).toBe(true)
     expect(ability.isAllowed('delete', 'Post')).toBe(false)

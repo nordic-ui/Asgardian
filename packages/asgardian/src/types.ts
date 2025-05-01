@@ -17,22 +17,43 @@ export type DateOperatorValue = TypedOperatorValue<Date | string>
 export type DaysOperatorValue = TypedOperatorValue<number>
 export type DateRangeOperatorValue = TypedOperatorValue<[Date | string, Date | string]>
 
-export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete'
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export type Resource = 'all' | string | Function
+export type Action<ExtendedActions extends string = never> =
+  | 'manage'
+  | 'create'
+  | 'read'
+  | 'update'
+  | 'delete'
+  | ExtendedActions
+export type Resource<ExtendedResources = never> = 'all' | ExtendedResources
 export type Condition = Record<PropertyKey, ConditionValue>
 
-export type Rule = {
-  action: Action | Action[]
-  resource: Resource
+export type Rule<ExtendedActions extends string, ExtendedResources extends string> = {
+  action: Action<ExtendedActions> | Action<ExtendedActions>[]
+  resource: Resource<ExtendedResources>
   inverted?: boolean
   conditions?: Condition
 }
 
-export type CreateAbility = {
-  can: (action: Action | Action[], resource: Resource, conditions?: Condition) => CreateAbility
-  cannot: (action: Action, resource: Resource, conditions?: Condition) => CreateAbility
-  isAllowed: (action: Action | Action[], resource: Resource, conditions?: Condition) => boolean
-  notAllowed: (action: Action | Action[], resource: Resource, conditions?: Condition) => boolean
-  rules: Rule[]
+export type CreateAbility<ExtendedActions extends string, ExtendedResources extends string> = {
+  can: (
+    action: Action<ExtendedActions> | Action<ExtendedActions>[],
+    resource: Resource<ExtendedResources>,
+    conditions?: Condition,
+  ) => CreateAbility<ExtendedActions, ExtendedResources>
+  cannot: (
+    action: Action<ExtendedActions>,
+    resource: Resource<ExtendedResources>,
+    conditions?: Condition,
+  ) => CreateAbility<ExtendedActions, ExtendedResources>
+  isAllowed: (
+    action: Action<ExtendedActions> | Action<ExtendedActions>[],
+    resource: Resource<ExtendedResources>,
+    conditions?: Condition,
+  ) => boolean
+  notAllowed: (
+    action: Action<ExtendedActions> | Action<ExtendedActions>[],
+    resource: Resource<ExtendedResources>,
+    conditions?: Condition,
+  ) => boolean
+  rules: Rule<ExtendedActions, ExtendedResources>[]
 }
