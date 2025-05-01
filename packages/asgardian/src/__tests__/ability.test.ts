@@ -78,6 +78,16 @@ describe('Ability', () => {
     expect(ability.isAllowed('read', 'Post', draftPost)).toBe(false)
   })
 
+  it('should handle multiple conditions', () => {
+    const ability = createAbility<never, 'Post'>()
+
+    ability.can('manage', 'Post', { authorId: 123, published: true })
+
+    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBe(true)
+    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: false })).toBe(false)
+    expect(ability.isAllowed('manage', 'Post', { authorId: 456 })).toBe(false)
+  })
+
   it('should handle cannot rules', () => {
     const ability = createAbility<never, 'Post'>()
 
