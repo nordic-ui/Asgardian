@@ -12,7 +12,7 @@ const unknown: User = { roles: [] }
 describe('Ability', () => {
   it('should grant abilities based on user role', () => {
     const permissions = (user: User) => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post' | 'Comment'>()
 
       if (user.roles.includes('viewer')) {
         ability.can('read', 'Post', { published: true })

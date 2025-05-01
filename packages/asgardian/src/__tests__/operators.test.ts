@@ -6,7 +6,7 @@ import * as operators from '../operators'
 describe('Ability operators', () => {
   describe('Logical operators', () => {
     it('should handle or operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { status: operators.or('published', 'archived') })
       ability.can('update', 'Post', { tags: operators.or('important', 'urgent') })
@@ -19,7 +19,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle logical operators', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('update', 'Post', { tags: operators.and('important', 'urgent') })
 
@@ -27,7 +27,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle and operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('update', 'Post', { tags: operators.and('important', 'urgent') })
 
@@ -37,7 +37,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle not operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('delete', 'Post', { category: operators.not('protected') })
 
@@ -48,7 +48,8 @@ describe('Ability operators', () => {
 
   describe('Advanced logical operators', () => {
     it('should handle NAND operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
+
       ability.can('update', 'Post', { tags: operators.nand('draft', 'archived') })
 
       // True if NOT both draft AND archived are present
@@ -59,7 +60,8 @@ describe('Ability operators', () => {
     })
 
     it('should handle NOR operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
+
       ability.can('delete', 'Post', { status: operators.nor('protected', 'archived') })
 
       // True only if NEITHER protected NOR archived are present
@@ -70,7 +72,8 @@ describe('Ability operators', () => {
     })
 
     it('should handle XOR operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
+
       ability.can('create', 'Post', { flags: operators.xor('featured', 'sponsored') })
 
       // True only if EXACTLY ONE of featured OR sponsored is present
@@ -81,7 +84,8 @@ describe('Ability operators', () => {
     })
 
     it('should handle XNOR operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
+
       ability.can('create', 'Post', { roles: operators.xnor('editor', 'reviewer') })
 
       // True if user has BOTH roles or NEITHER role
@@ -94,7 +98,7 @@ describe('Ability operators', () => {
 
   describe('Comparison operators', () => {
     it('should handle greater than', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { views: operators.gt(1000) })
 
@@ -103,7 +107,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle greater than or equal', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { views: operators.gte(1000) })
 
@@ -113,7 +117,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle less than', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { views: operators.lt(1000) })
 
@@ -122,7 +126,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle less than or equal', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { views: operators.lte(1000) })
 
@@ -132,7 +136,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle between operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('update', 'Post', { rating: operators.between(4, 5) })
 
@@ -146,7 +150,7 @@ describe('Ability operators', () => {
 
   describe('String operators', () => {
     it('should handle contains operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { title: operators.contains('important') })
 
@@ -155,7 +159,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle startsWith operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { title: operators.startsWith('important') })
 
@@ -165,7 +169,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle endsWith operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { title: operators.endsWith('important') })
 
@@ -174,7 +178,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle matches operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('update', 'Post', { slug: operators.matches(/^draft-/i) })
 
@@ -186,7 +190,7 @@ describe('Ability operators', () => {
 
   describe('Array operators', () => {
     it('should handle includesAll operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('manage', 'Post', { tags: operators.includesAll(['important', 'urgent']) })
 
@@ -197,7 +201,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle includesAny operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('manage', 'Post', { tags: operators.includesAny(['important', 'urgent']) })
 
@@ -214,7 +218,7 @@ describe('Ability operators', () => {
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     it('should handle before operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { publishDate: operators.before(tomorrow) })
 
@@ -228,7 +232,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle after operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { publishDate: operators.after(yesterday) })
 
@@ -238,7 +242,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle within operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { publishDate: operators.within([yesterday, tomorrow]) })
 
@@ -251,7 +255,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle pastDays operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { publishDate: operators.pastDays(7) })
 
@@ -272,7 +276,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle futureDays operator', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { publishDate: operators.futureDays(7) })
 
@@ -289,7 +293,7 @@ describe('Ability operators', () => {
     })
 
     it('should handle invalid dates', () => {
-      const ability = createAbility()
+      const ability = createAbility<never, 'Post'>()
 
       ability.can('read', 'Post', { publishDate: operators.before(tomorrow) })
 

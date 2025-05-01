@@ -4,7 +4,7 @@ import { createAbility } from '../core/ability'
 
 describe('Ability', () => {
   it('should handle all actions with exceptions', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can('manage', 'Post')
     ability.cannot('delete', 'Post')
@@ -14,7 +14,7 @@ describe('Ability', () => {
   })
 
   it('should handle all actions with exceptions', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can('manage', 'Post')
     ability.cannot('delete', 'Post')
@@ -24,7 +24,7 @@ describe('Ability', () => {
   })
 
   it('should handle multiple conditions', () => {
-    const ability = createAbility()
+    const ability = createAbility<never, 'Post'>()
 
     ability.can('manage', 'Post', { authorId: 123, published: true })
 
