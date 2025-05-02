@@ -4,130 +4,231 @@ title: API Reference
 
 # API Reference
 
-In this section, we provide a detailed reference of the Asgardian API, including all available methods, their parameters, and usage examples.
+This section provides a detailed reference of the Asgardian API, including all available functions, their parameters, and usage examples.
 
-## Overview
-
-Asgardian provides a comprehensive set of methods to define, manage, and check permissions. Here, you will find detailed documentation for each method.
-
-## Methods
+## Core Functions
 
 ### `createAbility`
 
-Creates a new instance of the ability that can be used to define rules and check permissions.
+Creates a new ability instance for defining and checking permissions.
 
-#### Syntax
-
+#### Type Definition
 ```ts
-createAbility()
+function createAbility<
+  ExtendedActions extends string = 'manage' | 'create' | 'read' | 'update' | 'delete',
+  ExtendedResources extends string = 'all'
+>(): CreateAbility<ExtendedActions, ExtendedResources>
 ```
+
+#### Generic Parameters
+
+- **ExtendedActions**: Custom action types to extend the default actions
+- **ExtendedResources**: Custom resource types to extend the default resources
 
 #### Returns
 
-An instance of the `Ability` class.
+Returns an object with methods for defining and checking permissions.
 
-#### Example
-
-```ts
-import { createAbility } from '@nordic-ui/asgardian';
-
-const ability = createAbility();
-```
-
-### `can`
-
-Defines a rule allowing a specific action on a resource.
-
-#### Syntax
+#### Examples
 
 ```ts
-ability.can(action: string, resource: string, conditions?: Record<PropertyKey, unknown> => boolean)
+// Basic usage
+const ability = createAbility()
+
+// With custom actions
+const ability = createAbility<'publish' | 'archive'>()
+
+// With custom resources
+const ability = createAbility<never, 'Post' | 'Comment'>()
+
+// With both custom actions and resources
+const ability = createAbility<'publish' | 'archive', 'Post' | 'Comment'>()
 ```
 
-#### Parameters
+### Permission Methods
 
-- `action` (string | string[]): The action to be allowed (e.g., `read`, `update`).
-- `resource` (string): The resource on which the action can be performed (e.g., `Post`, `Comment`).
-- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
+#### `can`
 
-#### Example
+Defines rules allowing specific actions on resources.
+
+##### Type Definition
 
 ```ts
-ability.can('read', 'Post');
-ability.can(['update', 'delete'], 'Post', { authorId: user.id });
+can(
+  action: Action<ExtendedActions> | Action<ExtendedActions>[],
+  resource: Resource<ExtendedResources>,
+  conditions?: Condition
+): CreateAbility<ExtendedActions, ExtendedResources>
 ```
 
-### `cannot`
+##### Parameters
 
-Defines a rule disallowing a specific action on a resource.
+- `action`: Single action or array of actions to allow
+- `resource`: The resource the actions apply to
+- `conditions`: Optional conditions that must be met for the permission to apply
 
-#### Syntax
+##### Examples
 
 ```ts
-ability.cannot(action: string, resource: string, conditions?: Record<PropertyKey, unknown> => boolean)
+// Single action
+ability.can('read', 'Post')
+
+// Multiple actions
+ability.can(['create', 'update'], 'Post')
+
+// With conditions
+ability.can('read', 'Post', { published: true })
+ability.can('update', 'Post', { authorId: 123 })
+
+// Chaining
+ability
+  .can('read', 'Post')
+  .can('create', 'Comment')
 ```
 
-#### Parameters
+#### `cannot`
 
-- `action` (string | string[]): The action to be disallowed (e.g., `delete`, `manage`).
-- `resource` (string): The resource on which the action cannot be performed (e.g., `Post`, `Comment`).
-- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
+Defines rules explicitly denying specific actions on resources.
 
-#### Example
+##### Type Definition
 
 ```ts
-ability.cannot('delete', 'Post');
+cannot(
+  action: Action<ExtendedActions>,
+  resource: Resource<ExtendedResources>,
+  conditions?: Condition
+): CreateAbility<ExtendedActions, ExtendedResources>
 ```
 
-### `isAllowed`
+##### Parameters
 
-Checks if a specific action is allowed for a given resource and context.
+- **action**: Action to deny
+- **resource**: The resource the action applies to
+- **conditions**: Optional conditions for when the denial applies
 
-#### Syntax
+##### Examples
 
 ```ts
-ability.isAllowed(action: string, resource: string)
+// Simple denial
+ability.cannot('delete', 'Post')
+
+// Conditional denial
+ability.cannot('update', 'Post', { archived: true })
+
+// Chaining
+ability
+  .cannot('update', 'Post')
+  .cannot('delete', 'Post')
 ```
 
-#### Parameters
+#### `isAllowed`
 
-- `action` (string | string[]): The action to check (e.g., `read`, `update`).
-- `resource` (string): The resource for which the action is being checked (e.g., `Post`, `Comment`).
-- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
+Checks if an action is allowed on a resource.
 
-#### Example
+##### Type Definition
 
 ```ts
-const user = { id: 123, roles: ['admin'] };
-ability.isAllowed('manage', 'all'); // true
+isAllowed(
+  action: Action<ExtendedActions> | Action<ExtendedActions>[],
+  resource: Resource<ExtendedResources>,
+  conditions?: Condition
+): boolean
 ```
 
-### `notAllowed`
+##### Parameters
 
-Checks if a specific action is not allowed for a given resource and context.
+- **action**: Single action or array of actions to check
+- **resource**: The resource to check against
+- **conditions**: Optional conditions to evaluate
 
-#### Syntax
+##### Examples
 
 ```ts
-ability.notAllowed(action: string, resource: string)
+// Basic check
+ability.isAllowed('read', 'Post') // true/false
+
+// Check multiple actions
+ability.isAllowed(['read', 'update'], 'Post') // true/false
+
+// With conditions
+ability.isAllowed('read', 'Post', { published: true }) // true/false
 ```
 
-#### Parameters
+#### `notAllowed`
 
-- `action` (string | string[]): The action to check (e.g., `read`, `update`).
-- `resource` (string): The resource for which the action is being checked (e.g., `Post`, `Comment`).
-- `conditions` (object, optional): An object which can be used to further restrict the rule's evaluation.
+Inverse of `isAllowed`. Checks if an action is not allowed on a resource.
 
-#### Example
+##### Type Definition
 
 ```ts
-ability.notAllowed('update', 'Post'); // true
+notAllowed(
+  action: Action<ExtendedActions> | Action<ExtendedActions>[],
+  resource: Resource<ExtendedResources>,
+  conditions?: Condition
+): boolean
 ```
 
-## Summary
+##### Parameters
 
-This section provides a detailed reference of the Asgardian API. For more information and examples, refer to the [Introduction](/), [Rules and Conditions](/docs/rules-and-conditions), and [Role-Based Permissions](/docs/role-based-permissions) sections.
+- **action**: Single action or array of actions to check
+- **resource**: The resource to check against
+- **conditions**: Optional conditions to evaluate
+
+##### Examples
+
+```ts
+// Basic check
+ability.notAllowed('delete', 'Post') // true/false
+
+// With conditions
+ability.notAllowed('update', 'Post', { archived: true }) // true/false
+```
+
+### Special Values
+
+#### Default Actions
+
+- `manage`: Grants all permissions
+- `create`: Allows creation
+- `read`: Allows reading
+- `update`: Allows updates
+- `delete`: Allows deletion
+
+#### Special Resources
+
+- `all`: Matches any resource
+
+#### Rule Resolution
+
+1. Rules are evaluated in order of definition
+1. More specific rules take precedence over general rules
+1. Multiple matching rules are combined with OR logic
+1. `cannot` rules take precedence over `can` rules
+1. Conditions must be fully satisfied for a rule to match
+
+#### Type Definitions
+
+```ts
+type Action<T extends string = never> =
+  | 'manage'
+  | 'create'
+  | 'read'
+  | 'update'
+  | 'delete'
+  | T
+
+type Resource<T extends string = never> = 'all' | T
+
+type Condition = Record<PropertyKey, unknown>
+
+type Rule<A extends string, R extends string> = {
+  action: Action<A> | Action<A>[]
+  resource: Resource<R>
+  inverted?: boolean
+  conditions?: Condition
+}
+```
 
 > [!TIP]
 >
-> For more advanced usage and best practices, refer to the [Advanced Usage](/docs/advanced-usage) section.
+> See the [Operators](/docs/operators) guide for advanced condition handling using built-in operators.

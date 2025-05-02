@@ -18,14 +18,6 @@ describe('Ability operators', () => {
       expect(ability.isAllowed('update', 'Post', { tags: ['normal'] })).toBe(false)
     })
 
-    it('should handle logical operators', () => {
-      const ability = createAbility<never, 'Post'>()
-
-      ability.can('update', 'Post', { tags: operators.and('important', 'urgent') })
-
-      expect(ability.isAllowed('update', 'Post', { tags: ['important', 'urgent'] })).toBe(true)
-    })
-
     it('should handle and operator', () => {
       const ability = createAbility<never, 'Post'>()
 
@@ -297,6 +289,7 @@ describe('Ability operators', () => {
 
       ability.can('read', 'Post', { publishDate: operators.before(tomorrow) })
 
+      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
       expect(ability.isAllowed('read', 'Post', { publishDate: 'invalid-date' })).toBe(false)
       expect(ability.isAllowed('read', 'Post', { publishDate: null })).toBe(false)
       expect(ability.isAllowed('read', 'Post', { publishDate: undefined })).toBe(false)

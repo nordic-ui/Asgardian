@@ -62,11 +62,7 @@ ability.can('manage', 'all');
 
 ## Using Conditions
 
-Conditions allow you to specify more granular rules based on specific criteria. Conditions can be objects or functions.
-
-### Object Conditions
-
-You can use objects to define conditions. Asgardian will check the resource object against the condition object.
+Conditions allow you to specify more granular rules based on specific criteria. You can use objects to define conditions. Asgardian will check the resource object against the condition object.
 
 ```ts
 // Allow reading only published posts
@@ -79,23 +75,6 @@ console.log(ability.isAllowed('read', 'Post', publishedPost)); // true
 console.log(ability.isAllowed('read', 'Post', draftPost)); // false
 ```
 
-### Function Conditions
-
-For more complex logic, you can use functions to define conditions. The function should return `true` if the condition is met.
-
-```ts
-// Allow updating posts only if the author ID matches
-ability.can('update', 'Post', (post, context) => post.authorId === context.userId);
-
-const post = { authorId: 123 };
-const context = { userId: 123 };
-
-console.log(ability.isAllowed('update', 'Post', post, context)); // true
-
-const differentContext = { userId: 456 };
-console.log(ability.isAllowed('update', 'Post', post, differentContext)); // false
-```
-
 ## Combining Rules
 
 You can combine multiple rules to create complex permission structures.
@@ -105,11 +84,10 @@ You can combine multiple rules to create complex permission structures.
 You can mix `can` and `cannot` rules to define specific permissions.
 
 ```ts
-// Allow reading posts
-ability.can('read', 'Post');
-
-// Disallow deleting posts
-ability.cannot('delete', 'Post');
+// Allow reading posts and disallow deleting posts
+ability
+  .can('read', 'Post')
+  .cannot('delete', 'Post');
 
 const canReadPost = ability.isAllowed('read', 'Post');
 console.log(canReadPost); // true
@@ -118,69 +96,100 @@ const canDeletePost = ability.isAllowed('delete', 'Post');
 console.log(canDeletePost); // false
 ```
 
-### Nested Conditions
-
-You can nest conditions to create more complex rules.
-
-```ts
-// Allow updating posts only if they are published and the author ID matches
-ability.can('update', 'Post', { published: true }, (post, context) => post.authorId === context.userId);
-
-const publishedPost = { published: true, authorId: 123 };
-const context = { userId: 123 };
-
-console.log(ability.isAllowed('update', 'Post', publishedPost, context)); // true
-
-const draftPost = { published: false, authorId: 123 };
-console.log(ability.isAllowed('update', 'Post', draftPost, context)); // false
-
-const differentContext = { userId: 456 };
-console.log(ability.isAllowed('update', 'Post', publishedPost, differentContext)); // false
-```
-
 ## Advanced Conditions
 
-For advanced use cases, you can use more sophisticated logic in your conditions.
+For advanced use cases, you can create more sophisticated permission rules by combining multiple conditions and rules.
 
-### Using Context
+### Multiple Conditions
 
-You can pass additional context to the conditions to make them more dynamic.
+You can specify multiple conditions that must all be met:
 
 ```ts
-// Allow updating posts only if the user is an admin or the author ID matches
-ability.can('update', 'Post', (post, context) => context.isAdmin || post.authorId === context.userId);
+const ability = createAbility()
 
-const post = { authorId: 123 };
-const adminContext = { isAdmin: true };
-const userContext = { isAdmin: false, userId: 123 };
-const differentContext = { isAdmin: false, userId: 456 };
+// Allow managing posts only if both conditions are met
+ability.can('manage', 'Post', {
+  authorId: 123,
+  published: true
+})
 
-console.log(ability.isAllowed('update', 'Post', post, adminContext)); // true
-console.log(ability.isAllowed('update', 'Post', post, userContext)); // true
-console.log(ability.isAllowed('update', 'Post', post, differentContext)); // false
+// All conditions must match
+ability.isAllowed('manage', 'Post', { authorId: 123, published: true }) // true
+ability.isAllowed('manage', 'Post', { authorId: 123, published: false }) // false
+ability.isAllowed('manage', 'Post', { authorId: 456, published: true }) // false
 ```
 
-### Using Roles
+### Combining Rules
 
-You can define rules based on user roles to enforce role-based access control.
+You can create complex permission structures by chaining multiple rules:
 
 ```ts
-// Allow reading posts for all users
-ability.can('read', 'Post');
+const ability = createAbility()
+  .can('read', 'Post')
+  .can(['read', 'create'], 'Comment')
+  .cannot('update', 'Comment')
 
-// Allow creating, updating, and deleting posts only for admins
-ability.can(['create', 'update', 'delete'], 'Post', (post, context) => context.userRoles.includes('admin'));
+// Check permissions
+ability.isAllowed('read', 'Post') // true
+ability.isAllowed('delete', 'Post') // false
+ability.isAllowed('read', 'Comment') // true
+ability.isAllowed('create', 'Comment') // true
+ability.isAllowed('update', 'Comment') // false
+```
 
-const adminContext = { userRoles: ['admin'] };
-const userContext = { userRoles: ['user'] };
+### Rule Precedence
 
-console.log(ability.isAllowed('create', 'Post', null, adminContext)); // true
-console.log(ability.isAllowed('create', 'Post', null, userContext)); // false
+Rules are evaluated in order, with later rules taking precedence over earlier ones. It's recommended to follow the principle of least privilege by:
+1. Starting with restrictive permissions
+2. Adding specific allowances where needed
+3. Using `cannot` rules as safety guards
+
+```ts
+const ability = createAbility()
+
+// ❌ Bad practice: Starting with broad permissions
+ability
+  .can('manage', 'all')
+  .cannot('delete', 'Comment') // Trying to restrict after the fact
+
+// ✅ Good practice: Start restrictive, add specific permissions
+ability
+  .can('read', 'Post', { published: true }) // Allow reading published posts
+  .can(['create', 'update'], 'Post', { authorId: 123 }) // Allow authors to manage their own posts
+  .cannot('delete', 'Post') // Ensure deletion is never allowed, regardless of other rules
+
+// Even better: Be explicit about all permissions
+const userAbility = createAbility()
+  // Post permissions
+  .can('read', 'Post', { published: true })
+  .can('create', 'Post')
+  .can('update', 'Post', { authorId: 123 })
+  
+  // Comment permissions
+  .can('read', 'Comment')
+  .can('create', 'Comment', { authenticated: true })
+  .cannot('delete', 'Comment') // Extra safety guard
+```
+
+### Using Operators
+
+For more complex conditions, you can use operators:
+
+```ts
+import { operators } from '@nordic-ui/asgardian'
+
+const ability = createAbility()
+
+ability.can('read', 'Post', {
+  status: operators.or('published', 'archived'),
+  views: operators.gt(1000),
+  tags: operators.includesAll(['important', 'featured'])
+})
 ```
 
 ## Summary
 
-In this section, we learned how to define basic rules and use conditions to enforce more granular access control using Asgardian. Conditions can be simple objects or complex functions, allowing you to tailor your permission rules to fit your application's needs.
+In this section, we explored how to create advanced permission rules using multiple conditions, role-based access control, and rule combinations. While the library doesn't support dynamic context evaluation directly, you can achieve complex permission structures through careful rule composition and condition combinations.
 
 > [!TIP]
 >

@@ -130,11 +130,13 @@ describe('Ability', () => {
     const ability = createAbility<never, 'Post' | 'Comment'>()
       .can('read', 'Post')
       .can(['read', 'create'], 'Comment')
+      .cannot('update', 'Comment')
 
     expect(ability.isAllowed('read', 'Post')).toBe(true)
     expect(ability.isAllowed('delete', 'Post')).toBe(false)
     expect(ability.isAllowed('read', 'Comment')).toBe(true)
     expect(ability.isAllowed('create', 'Comment')).toBe(true)
+    expect(ability.isAllowed('update', 'Comment')).toBe(false)
     expect(ability.isAllowed('delete', 'Comment')).toBe(false)
   })
 })

@@ -18,13 +18,12 @@ Before you start contributing, please read and adhere to our [Code of Conduct](/
    git clone https://github.com/nordic-ui/Asgardian.git
    ```
 3. **Install Dependencies**: Navigate to the project directory and install the necessary dependencies.
-   ```bash
-   cd asgardian
+   ```sh npm2yarn
    npm install
    ```
 4. **Create a Branch**: Create a new branch for your changes.
    ```bash
-   git checkout -b feature-branch
+   git checkout -b feat/branch-name
    ```
 5. **Make Changes**: Make your changes to the codebase.
 
@@ -35,44 +34,40 @@ Before you start contributing, please read and adhere to our [Code of Conduct](/
 Asgardian follows a specific code style to ensure consistency. Make sure to adhere to the following guidelines:
 
 - **Linting**: Use ESLint to maintain consistent code style.
-  ```bash
+  ```sh npm2yarn
   npm run lint
   ```
 - **TypeScript**: Write type-safe code using TypeScript.
-- **Formatting**: Use Prettier for code formatting.
-  ```bash
-  npm run format
-  ```
 
 ### Testing
 
-Asgardian uses Jest for testing. Ensure that your changes are covered by tests and that all existing tests pass.
+Asgardian uses Vitest for testing. Ensure that your changes are covered by tests and that all existing tests pass.
 
 1. **Write Tests**: Write tests for your changes.
 2. **Run Tests**: Run the test suite to ensure everything works as expected.
-   ```bash
-   npm test
+   ```sh npm2yarn
+   npm run test
    ```
 
 ### Documentation
 
 If your changes affect the public API or add new features, update the documentation accordingly.
 
-1. **Update MDX Files**: Modify the relevant MDX files in the `docs` directory.
+1. **Update MDX Files**: Modify the relevant MDX files in the `apps/docs` directory.
 2. **Build Documentation**: Build the documentation to ensure your changes render correctly.
-   ```bash
-   npm run docs:build
+   ```sh npm2yarn
+   npm run build:docs
    ```
 
 ## Submitting Changes
 
 1. **Commit Changes**: Commit your changes with a descriptive commit message.
    ```bash
-   git commit -m "Add feature: [Your Feature Description]"
+   git commit -m "feat(asgardian): [Your Feature Description]"
    ```
 2. **Push Changes**: Push your changes to your forked repository.
    ```bash
-   git push origin feature-branch
+   git push origin feat/branch-name
    ```
 3. **Create a Pull Request**: Open a pull request to the main repository. Provide a clear description of your changes and any related issues.
 

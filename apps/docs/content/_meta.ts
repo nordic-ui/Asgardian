@@ -1,8 +1,4 @@
 export default {
-  "api-reference": {
-    type: "page",
-    title: "API Reference",
-  },
   contact: {
     title: "GitHub",
     type: "page",
@@ -11,6 +7,10 @@ export default {
   index: "",
   docs: {
     title: "Documentation",
+  },
+  "api-reference": "",
+  "###": {
+    type: "separator",
   },
   faq: "",
   contributing: "",

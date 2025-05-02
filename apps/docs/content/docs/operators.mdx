@@ -1,0 +1,222 @@
+---
+title: Operators
+---
+
+# Operators
+
+Asgardian provides a rich set of operators for complex permission rules. These operators can be used in condition objects to create sophisticated access control rules.
+
+## Logical Operators
+
+Basic boolean logic operators for simple conditions.
+
+### `or(...values)`
+
+Matches if any of the values match the condition.
+
+```ts
+ability.can('read', 'Post', { 
+  status: operators.or('published', 'archived')
+})
+```
+
+### `and(...values)`
+
+Matches if all values are present in an array.
+
+```ts
+ability.can('update', 'Post', { 
+  tags: operators.and('important', 'urgent')
+})
+```
+
+### `nand(...values)`
+
+NOT AND - Matches if NOT all values are present.
+
+```ts
+ability.can('update', 'Post', { 
+  tags: operators.nand('draft', 'archived')
+})
+```
+### `nand(...values)`
+
+NOT AND - Matches if NOT all values are present.
+
+```ts
+ability.can('update', 'Post', { 
+  tags: operators.nand('draft', 'archived')
+})
+```
+
+### `nor(...values)`
+
+NOT OR - Matches if NONE of the values are present.
+
+```ts
+ability.can('delete', 'Post', { 
+  status: operators.nor('protected', 'archived')
+})
+```
+
+### `xor(...values)`
+
+Exclusive OR - Matches if EXACTLY ONE value is present.
+
+```ts
+ability.can('create', 'Post', { 
+  flags: operators.xor('featured', 'sponsored')
+})
+```
+
+### `xnor(...values)`
+
+Exclusive NOR - Matches if ALL or NONE of the values are present.
+
+```ts
+ability.can('create', 'Post', { 
+  roles: operators.xnor('editor', 'reviewer')
+})
+```
+
+## Comparison Operators
+
+Numeric comparison operators for quantitative rules.
+
+### `gt(value), gte(value), lt(value), lte(value)`
+
+Greater than, greater than or equal, less than, less than or equal.
+
+```ts
+ability.can('read', 'Post', { 
+  views: operators.gt(1000)
+})
+
+ability.can('read', 'Post', { 
+  views: operators.gte(1000)
+})
+
+ability.can('read', 'Post', { 
+  views: operators.lt(1000)
+})
+
+ability.can('read', 'Post', { 
+  views: operators.lte(1000)
+})
+```
+
+### `between(min, max)`
+
+Matches if value is within range (inclusive).
+
+```ts
+ability.can('update', 'Post', { 
+  rating: operators.between(4, 5)
+})
+```
+
+## String Operators
+
+Text-based comparison operators.
+
+### `contains(value), startsWith(value), endsWith(value)`
+
+String pattern matching operators.
+
+```ts
+ability.can('read', 'Post', { 
+  title: operators.contains('important')
+})
+
+ability.can('read', 'Post', { 
+  title: operators.startsWith('important')
+})
+
+ability.can('read', 'Post', { 
+  title: operators.endsWith('important')
+})
+```
+
+### `matches(regex)`
+
+Regular expression matching.
+
+```ts
+ability.can('update', 'Post', { 
+  slug: operators.matches(/^draft-/i)
+})
+```
+
+## Array Operators
+
+Collection-based operators for array values.
+
+### `includesAll(values)`
+
+Matches if array includes all specified values.
+
+```ts
+ability.can('manage', 'Post', { 
+  tags: operators.includesAll(['important', 'urgent'])
+})
+```
+
+### `includesAny(values)`
+
+Matches if array includes any of the specified values.
+
+```ts
+ability.can('manage', 'Post', { 
+  tags: operators.includesAny(['important', 'urgent'])
+})
+```
+
+## Date Operators
+
+Time-based comparison operators.
+
+### `before(date), after(date)`
+
+Date comparison operators.
+
+```ts
+ability.can('read', 'Post', { 
+  publishDate: operators.before('2025-12-31')
+})
+
+ability.can('read', 'Post', { 
+  publishDate: operators.after('2025-12-31')
+})
+```
+
+### `within(date)`
+
+Date range operator.
+
+```ts
+ability.can('read', 'Post', { 
+  publishDate: operators.within([startDate, endDate])
+})
+```
+
+### `pastDays(days), futureDays(days)`
+
+Relative date range operators.
+
+```ts
+ability.can('read', 'Post', { 
+  publishDate: operators.pastDays(7)
+})
+
+ability.can('read', 'Post', { 
+  publishDate: operators.futureDays(7)
+})
+```
+
+## Summary
+
+Operators are a powerful feature of Asgardian that allow you to create sophisticated permission rules. By combining different operators, you can express complex conditions in a clear and maintainable way.
+
+> [!TIP]
+>
+> For more examples and advanced usage patterns, check out the [Advanced Usage Guide](/advanced-usage).

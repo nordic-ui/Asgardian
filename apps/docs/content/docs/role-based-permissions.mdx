@@ -6,156 +6,236 @@ title: Role-Based Permissions
 
 In this section, we will explore how to define and enforce role-based permissions using Asgardian. Role-based access control (RBAC) allows you to assign permissions to users based on their roles, making it easier to manage access control in your application.
 
-## Defining Roles
+## Role-Based Permission Patterns
 
-Roles are a way to group permissions together. You can define roles and assign them to users, and then define rules that apply to these roles.
+There are several patterns you can use to implement role-based permissions with Asgardian:
 
-### Basic Role Definition
+### Pattern 1: Separate Ability Instances
 
-You can define roles using a simple structure. Typically, roles are defined as strings or objects.
+Create distinct ability instances for different roles:
 
 ```ts
-import { createAbility } from '@nordic-ui/asgardian';
+import { createAbility } from '@nordic-ui/asgardian'
 
-const ability = createAbility();
+// Admin abilities - full access
+const adminAbility = createAbility().can('manage', 'all')
 
-// Define roles
-const roles = {
-  admin: ['create', 'read', 'update', 'delete', 'manage'],
-  user: ['read'],
-};
+// Editor abilities - can manage content but not delete
+const editorAbility = createAbility()
+  .can(['create', 'read', 'update'], 'Post')
+  .can(['create', 'read', 'update'], 'Comment')
+
+// Author abilities - can manage own content
+const authorAbility = createAbility()
+  .can(['read', 'create'], 'Post')
+  .can(['update', 'delete'], 'Post', { authorId: 123 })
+  .can(['read', 'create'], 'Comment')
+  .can(['update', 'delete'], 'Comment', { authorId: 123 })
+
+// Visitor abilities - read-only access
+const visitorAbility = createAbility()
+  .can('read', 'Post', { published: true })
+  .can('read', 'Comment')
 ```
 
-## Assigning Roles to Users
+### Pattern 2: Role-Based Ability Factory
 
-You can assign roles to users based on their user object or context.
-
-### Example User Object
+Create a factory function that returns the appropriate ability instance:
 
 ```ts
+type Role = 'admin' | 'editor' | 'author' | 'visitor'
+type Resources = 'Post' | 'Comment'
+
+function createRoleAbility(role: Role, userId?: number) {
+  const ability = createAbility()
+  
+  switch (role) {
+    case 'admin':
+      ability.can('manage', 'all')
+      break
+      
+    case 'editor':
+      ability
+        .can(['create', 'read', 'update'], 'Post')
+        .can(['create', 'read', 'update'], 'Comment')
+      break
+      
+    case 'author':
+      ability
+        .can(['read', 'create'], 'Post')
+        .can(['update', 'delete'], 'Post', { authorId: 123 })
+        .can(['read', 'create'], 'Comment')
+        .can(['update', 'delete'], 'Comment', { authorId: 123 })
+      break
+      
+    case 'visitor':
+      ability
+        .can('read', 'Post', { published: true })
+        .can('read', 'Comment')
+      break
+  }
+  
+  return ability
+}
+```
+
+### Pattern 3: Composable Ability Modules
+
+Break down permissions into smaller, focused modules that can be composed together:
+
+```ts
+// Define specific permission modules
+function createContentPermissions(userId: number) {
+  return createAbility()
+    .can('read', 'Post', { published: true })
+    .can(['create', 'update'], 'Post', { authorId: userId })
+    .can('read', 'Comment')
+}
+
+function createModeratorPermissions() {
+  return createAbility()
+    .can('delete', 'Post')
+    .can('delete', 'Comment')
+    .can('update', 'Post', { reported: true })
+}
+
+function createAdminPermissions() {
+  return createAbility().can('manage', 'all')
+}
+
+type User = { id: number, roles: ('admin', 'moderator', 'user')[] }
+
+// Compose permissions based on user roles
+function createUserAbility(user: User) {
+  const abilities = [
+    // Base permissions everyone gets
+    createContentPermissions(user.id)
+  ]
+
+  if (user.roles.includes('moderator')) {
+    abilities.push(createModeratorPermissions())
+  }
+
+  if (user.roles.includes('admin')) {
+    abilities.push(createAdminPermissions())
+  }
+
+  // Combine all permissions
+  const finalAbility = createAbility()
+  
+  for (const ability of abilities) {
+    ability.rules.forEach(rule => {
+      if (rule.inverted) {
+        finalAbility.cannot(rule.action, rule.resource, rule.conditions)
+      } else {
+        finalAbility.can(rule.action, rule.resource, rule.conditions)
+      }
+    })
+  }
+
+  return finalAbility
+}
+```
+
+## Using Role-Based Abilities
+
+Here's how to use the role-based abilities in your application:
+
+```ts
+// Create ability instance based on user's role
 const user = {
   id: 123,
-  roles: ['admin'],
-};
+  role: 'author'
+}
 
-const anotherUser = {
-  id: 456,
-  roles: ['user'],
-};
+const ability = createRoleAbility(user.role, user.id)
+
+// Check permissions
+ability.isAllowed('read', 'Post', { published: true }) // true
+ability.isAllowed('update', 'Post', { authorId: 123 }) // true
+ability.isAllowed('update', 'Post', { authorId: 456 }) // false
+ability.isAllowed('delete', 'Post', { authorId: 456 }) // false
 ```
 
-## Defining Role-Based Rules
+## Multiple Roles
 
-You can define rules that apply to specific roles. This allows you to specify which actions users with certain roles can perform on specific resources.
-
-### Basic Role-Based Rule
+To handle users with multiple roles, you can combine permissions from different roles:
 
 ```ts
-// Allow admins to perform all actions on all resources
-ability.can('manage', 'all', (resource, context) => context.user.roles.includes('admin'));
+function createMultiRoleAbility(roles: Role[], userId?: number) {
+  const ability = createAbility<never, Resources>()
+  
+  if (roles.includes('admin')) {
+    ability.can('manage', 'all')
+    return ability // Admin has all permissions, no need to check other roles
+  }
+  
+  if (roles.includes('editor')) {
+    ability
+      .can(['create', 'read', 'update'], 'Post')
+      .can(['create', 'read', 'update'], 'Comment')
+  }
+  
+  if (roles.includes('author')) {
+    ability
+      .can('read', 'Post')
+      .can(['create', 'update'], 'Post', { authorId: userId })
+      .can(['read', 'create'], 'Comment')
+  }
+  
+  // Visitor permissions are implicit for all users
+  ability
+    .can('read', 'Post', { published: true })
+    .can('read', 'Comment')
+  
+  return ability
+}
 
-// Allow users to read posts
-ability.can('read', 'Post', (resource, context) => context.user.roles.includes('user'));
-```
-
-### Using Role Arrays
-
-You can check for multiple roles in a single rule.
-
-```ts
-// Allow admins and moderators to create and update posts
-ability.can(['create', 'update'], 'Post', (resource, context) => 
-  context.user.roles.includes('admin') || context.user.roles.includes('moderator'));
-```
-
-## Example with Role-Based Permissions
-
-Here is a complete example that demonstrates how to define and check role-based permissions in Asgardian.
-
-### Define Roles and Rules
-
-```ts
-import { createAbility } from '@nordic-ui/asgardian';
-
-const ability = createAbility();
-
-// Define roles
-const roles = {
-  admin: ['create', 'read', 'update', 'delete', 'manage'],
-  user: ['read'],
-  moderator: ['create', 'update'],
-};
-
-// Define rules based on roles
-ability.can('manage', 'all', (resource, context) => context.user.roles.includes('admin'));
-ability.can('read', 'Post', (resource, context) => context.user.roles.includes('user'));
-ability.can(['create', 'update'], 'Post', (resource, context) => 
-  context.user.roles.includes('admin') || context.user.roles.includes('moderator'));
-ability.can('delete', 'Post', (resource, context) => context.user.roles.includes('admin'));
-```
-
-### Check Permissions
-
-```ts
-const adminUser = {
+// Usage with multiple roles
+const userWithMultipleRoles = {
   id: 123,
-  roles: ['admin'],
-};
+  roles: ['editor', 'author'] as Role[]
+}
 
-const userUser = {
-  id: 456,
-  roles: ['user'],
-};
-
-const moderatorUser = {
-  id: 789,
-  roles: ['moderator'],
-};
-
-// Check permissions for admin
-console.log(ability.isAllowed('manage', 'Post', null, { user: adminUser })); // true
-console.log(ability.isAllowed('create', 'Post', null, { user: adminUser })); // true
-console.log(ability.isAllowed('read', 'Post', null, { user: adminUser })); // true
-console.log(ability.isAllowed('delete', 'Post', null, { user: adminUser })); // true
-
-// Check permissions for user
-console.log(ability.isAllowed('manage', 'Post', null, { user: userUser })); // false
-console.log(ability.isAllowed('create', 'Post', null, { user: userUser })); // false
-console.log(ability.isAllowed('read', 'Post', null, { user: userUser })); // true
-console.log(ability.isAllowed('delete', 'Post', null, { user: userUser })); // false
-
-// Check permissions for moderator
-console.log(ability.isAllowed('manage', 'Post', null, { user: moderatorUser })); // false
-console.log(ability.isAllowed('create', 'Post', null, { user: moderatorUser })); // true
-console.log(ability.isAllowed('read', 'Post', null, { user: moderatorUser })); // true
-console.log(ability.isAllowed('delete', 'Post', null, { user: moderatorUser })); // false
+const ability = createMultiRoleAbility(userWithMultipleRoles.roles, userWithMultipleRoles.id)
 ```
 
-## Advanced Role-Based Permissions
+## Best Practices
 
-For more complex scenarios, you can combine roles and conditions to enforce fine-grained access control.
+1. **Start restrictive**
+    ```ts
+    // ✅ Good: Start with limited permissions
+    const ability = createAbility()
+      .can('read', 'Post', { published: true })
+      .can('update', 'Post', { authorId: userId })
 
-### Role and Condition Combination
+    // ❌ Bad: Starting with broad permissions
+    const ability = createAbility()
+      .can('manage', 'all')
+      .cannot('delete', 'Post')
+    ```
+2. **Be explicit**
+    ```ts
+    // ✅ Good: Specific resource access
+    const editorAbility = createAbility()
+      .can('manage', 'Post') // Explicitly grant all actions on posts
+      .can('read', 'Comment') // Explicitly grant only read access on comments
 
-```ts
-// Allow moderators to update posts only if they are authored by the moderator
-ability.can('update', 'Post', (resource, context) => 
-  context.user.roles.includes('moderator') && resource.authorId === context.user.id);
+    // ❌ Bad: Over-permissive resource access
+    const editorAbility = createAbility()
+      .can('manage', 'all') // Too broad, grants access to all current and future resources
+    ```
+3. **Use type safety**
+    ```ts
+    // ✅ Good: Type-safe roles and resources
+    type Role = 'admin' | 'editor' | 'author' | 'visitor'
+    type Resources = 'Post' | 'Comment'
 
-const post = {
-  id: 1,
-  authorId: 789,
-};
+    const ability = createAbility<never, Resources>()
 
-console.log(ability.isAllowed('update', 'Post', post, { user: moderatorUser })); // true
-
-const differentPost = {
-  id: 2,
-  authorId: 456,
-};
-
-console.log(ability.isAllowed('update', 'Post', differentPost, { user: moderatorUser })); // false
-```
+    // ❌ Bad: No type safety
+    const ability = createAbility<any, any>()
+    ```
 
 ## Summary
 

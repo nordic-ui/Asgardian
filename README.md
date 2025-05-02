@@ -1,84 +1,119 @@
-# Turborepo starter
+<p align="center">
+  <img src="apps/docs/public/logo.svg" alt="Asgardian Logo" width="400"/>
+</p>
 
-This Turborepo starter is maintained by the Turborepo core team.
+<p align="center">
+  A powerful and flexible TypeScript permission system
+</p>
 
-## Using this example
+<p align="center">
+  <a href="https://asgardian.oesterkilde.dk/">Documentation</a> |
+  <a href="#installation">Installation</a> |
+  <a href="#quick-start">Quick Start</a> |
+  <a href="#packages">Packages</a>
+</p>
 
-Run the following command:
+## Overview
 
-```sh
-npx create-turbo@latest
+Asgardian is a powerful permission management system for TypeScript applications. It provides a simple yet flexible API for defining and checking permissions, with support for:
+
+- Type-safe permission rules
+- Complex conditions using logical operators
+- Resource-based access control
+- Role-based access control
+- Time-based permissions
+- React integration (Coming soon)
+
+## Packages
+
+This monorepo contains the following packages:
+
+- [@nordic-ui/asgardian](packages/asgardian) - The core permission system
+- [Docs](apps/docs) - Documentation site built with Next.js
+
+## Installation
+
+```bash
+# Using npm
+npm install @nordic-ui/asgardian
+
+# Using yarn
+yarn add @nordic-ui/asgardian
+
+# Using pnpm
+pnpm add @nordic-ui/asgardian
 ```
 
-## What's inside?
+## Quick Start
 
-This Turborepo includes the following packages/apps:
+```ts
+import { createAbility } from '@nordic-ui/asgardian'
 
-### Apps and Packages
+// Create a type-safe ability instance
+const ability = createAbility<'publish', 'Post'>()
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@nordic-ui/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@nordic-ui/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@nordic-ui/typescript-config`: `tsconfig.json`s used throughout the monorepo
+// Define permissions
+ability
+  .can('read', 'Post', { published: true })
+  .can('update', 'Post', { authorId: 123 })
+  .can('publish', 'Post', { draft: true, authorId: 123 })
+  .cannot('delete', 'Post')
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+// Check permissions
+ability.isAllowed('read', 'Post', { published: true }) // true
+ability.isAllowed('publish', 'Post', { draft: false }) // false
+ability.isAllowed('delete', 'Post') // false
 ```
 
-### Develop
+## Features
 
-To develop all apps and packages, run the following command:
+### Type-Safe Permissions
 
-```
-cd my-turborepo
-pnpm dev
-```
+Extend default actions and resources with your own types:
 
-### Remote Caching
+```ts
+type CustomActions = 'publish' | 'archive' | 'feature'
+type Resources = 'Post' | 'Comment' | 'User'
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+const ability = createAbility<CustomActions, Resources>()
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### Powerful Operators
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+Use built-in operators for complex conditions:
 
+```ts
+import { operators } from '@nordic-ui/asgardian'
+
+ability.can('read', 'Post', {
+  status: operators.or('published', 'archived'),
+  rating: operators.gte(4),
+  publishDate: operators.before(new Date()),
+  tags: operators.includesAny(['featured', 'trending'])
+})
 ```
-npx turbo link
+
+### Role-Based Access
+
+Define permissions based on roles:
+
+```ts
+const defineAbilities = (user: User) => {
+  const ability = createAbility()
+
+  if (user.role === 'admin') {
+    ability.can('manage', 'all')
+  }
+
+  if (user.role === 'editor') {
+    ability.can(['read', 'update'], 'Post')
+    ability.can('publish', 'Post', { draft: true })
+  }
+
+  return ability
+}
 ```
 
-## Useful Links
+## Contributing
 
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+We welcome contributions! Please see our [Contributing Guide](https://asgardian.oesterkilde.dk/contributing) for details.
