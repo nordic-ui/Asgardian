@@ -98,12 +98,12 @@ export type Action<ExtendedActions extends string = never> =
   | 'update'
   | 'delete'
   | ExtendedActions
-export type Resource<ExtendedResources = never> = 'all' | ExtendedResources
+export type Resource<ExtendedResources extends string = never> = 'all' | ExtendedResources
 
 // Rule type - updated to use NewCondition
 export type Rule<ExtendedActions extends string, ExtendedResources extends string> = {
   action: Action<ExtendedActions> | Action<ExtendedActions>[]
-  resource: Resource<ExtendedResources>
+  resource: Resource<ExtendedResources> | Resource<ExtendedResources>[]
   inverted?: boolean
   conditions?: Condition // Use the new condition type
 }
@@ -112,23 +112,23 @@ export type Rule<ExtendedActions extends string, ExtendedResources extends strin
 export type CreateAbility<ExtendedActions extends string, ExtendedResources extends string> = {
   can: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
-    resource: Resource<ExtendedResources>,
-    conditions?: Condition, // Use the new condition type
+    resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
+    conditions?: Condition,
   ) => CreateAbility<ExtendedActions, ExtendedResources>
   cannot: (
-    action: Action<ExtendedActions>,
-    resource: Resource<ExtendedResources>,
-    conditions?: Condition, // Use the new condition type
+    action: Action<ExtendedActions> | Action<ExtendedActions>[],
+    resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
+    conditions?: Condition,
   ) => CreateAbility<ExtendedActions, ExtendedResources>
   isAllowed: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
-    resource: Resource<ExtendedResources>,
-    conditions?: Condition, // Use the new condition type
+    resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
+    conditions?: Condition,
   ) => boolean
   notAllowed: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
-    resource: Resource<ExtendedResources>,
-    conditions?: Condition, // Use the new condition type
+    resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
+    conditions?: Condition,
   ) => boolean
   rules: Rule<ExtendedActions, ExtendedResources>[]
 }

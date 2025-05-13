@@ -51,6 +51,15 @@ To define all actions in a single rule, use the `'manage'` keyword.
 ability.can('manage', 'Post');
 ```
 
+### Multiple Resources
+
+You can define multiple resources in a single rule using an array.
+
+```ts
+// Allow creating posts and comments
+ability.can('create', ['Post', 'Comment']);
+```
+
 ### All Resources
 
 To define a rule that applies to all resources, use the `'all'` keyword.

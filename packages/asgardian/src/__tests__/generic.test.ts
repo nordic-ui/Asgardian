@@ -8,7 +8,7 @@ describe('Ability', () => {
     const ability = createAbility()
 
     expectTypeOf(ability.can).parameter(0).toExtend<Action<never> | Action<never>[]>()
-    expectTypeOf(ability.can).parameter(1).toExtend<Resource<never>>()
+    expectTypeOf(ability.can).parameter(1).toExtend<Resource<never> | Resource<never>[]>()
   })
 
   it('should allow extending actions and resource types', () => {
@@ -19,7 +19,9 @@ describe('Ability', () => {
     expect(
       expectTypeOf(ability.can).parameter(0).toExtend<Action<'publish'> | Action<'publish'>[]>(),
     ).toBeTruthy()
-    expect(expectTypeOf(ability.can).parameter(1).toExtend<Resource<'Post'>>()).toBeTruthy()
+    expect(
+      expectTypeOf(ability.can).parameter(1).toExtend<Resource<'Post'> | Resource<'Post'>[]>(),
+    ).toBeTruthy()
   })
 
   it('should allow extending just action type', () => {
@@ -30,7 +32,9 @@ describe('Ability', () => {
     expect(
       expectTypeOf(ability.can).parameter(0).toExtend<Action<'publish'> | Action<'publish'>[]>(),
     ).toBeTruthy()
-    expect(expectTypeOf(ability.can).parameter(1).toExtend<Resource<never>>()).toBeTruthy()
+    expect(
+      expectTypeOf(ability.can).parameter(1).toExtend<Resource<never> | Resource<never>[]>(),
+    ).toBeTruthy()
   })
 
   it('should allow extending just resource type', () => {
@@ -41,6 +45,8 @@ describe('Ability', () => {
     expect(
       expectTypeOf(ability.can).parameter(0).toExtend<Action<never> | Action<never>[]>(),
     ).toBeTruthy()
-    expect(expectTypeOf(ability.can).parameter(1).toExtend<Resource<'Post'>>()).toBeTruthy()
+    expect(
+      expectTypeOf(ability.can).parameter(1).toExtend<Resource<'Post'> | Resource<'Post'>[]>(),
+    ).toBeTruthy()
   })
 })
