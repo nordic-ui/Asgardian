@@ -1,4 +1,4 @@
-import { ConditionValue, Operator } from '../types'
+import { ConditionValue, Operator, Operators } from '../types'
 
 /**
  * Evaluates the operators applied to a specific field value.
@@ -9,7 +9,7 @@ import { ConditionValue, Operator } from '../types'
  */
 export const evaluateFieldOperators = (
   fieldValue: ConditionValue,
-  operators: Record<Operator, ConditionValue>,
+  operators: Operators,
 ): boolean => {
   // All operators on a single field must be satisfied (implicit AND)
   return Object.keys(operators).every((op) => {

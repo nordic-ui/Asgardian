@@ -28,18 +28,18 @@ type BaseOperator = {
 
 /**
  * Represents logical operators for combining conditions.
- * These operators ($and, $or, etc.) take an array of ConditionObject.
- * $not takes a single ConditionObject.
+ * These operators ($and, $or, etc.) take an array of `Condition`.
+ * `$not` takes a single `Condition`.
  */
 type LogicalOperator = {
-  $or?: ConditionObject[]
-  $and?: ConditionObject[]
-  $not?: ConditionObject // $not takes a single condition object
+  $or?: Condition[]
+  $and?: Condition[]
+  $not?: Condition // $not takes a single condition object
   // Consider if these are necessary or if $not combined with others is sufficient.
-  // $nand?: ConditionObject // Could be represented as { $not: { $and: [...] } }
-  // $nor?: ConditionObject[] // Could be represented as { $not: { $or: [...] } }
-  // $xor?: ConditionObject[] // More complex, might need custom logic or representation
-  // $xnor?: ConditionObject[] // More complex, might need custom logic or representation
+  // $nand?: Condition // Could be represented as { $not: { $and: [...] } }
+  // $nor?: Condition[] // Could be represented as { $not: { $or: [...] } }
+  // $xor?: Condition[] // More complex, might need custom logic or representation
+  // $xnor?: Condition[] // More complex, might need custom logic or representation
 }
 
 export type Operators = BaseOperator & LogicalOperator
@@ -54,13 +54,13 @@ export type Operator = keyof Operators
  *
  * ```typescript
   // Simple condition: Match a field with a specific value
-  const condition1: ConditionObject = { fieldName: "value" };
+  const condition1: Condition = { fieldName: "value" };
 
   // Using comparison operators
-  const condition2: ConditionObject = { fieldName: { $gt: 10, $lt: 20 } };
+  const condition2: Condition = { fieldName: { $gt: 10, $lt: 20 } };
 
   // Logical combination of conditions
-  const condition3: ConditionObject = {
+  const condition3: Condition = {
     $and: [
       { fieldName1: { $eq: "value1" } },
       { fieldName2: { $in: ["value2", "value3"] } }
@@ -68,7 +68,7 @@ export type Operator = keyof Operators
   };
 
   // Nested logical operators
-  const condition4: ConditionObject = {
+  const condition4: Condition = {
     $or: [
       { $and: [{ fieldName: { $gte: 5 } }, { fieldName: { $lte: 15 } }] },
       { fieldName: { $eq: 20 } }
@@ -76,40 +76,19 @@ export type Operator = keyof Operators
   };
 
   // Negating a condition
-  const condition5: ConditionObject = { $not: { fieldName: { $eq: "value" } } };
+  const condition5: Condition = { $not: { fieldName: { $eq: "value" } } };
  * ```
  *
- * These examples demonstrate how to construct conditions using the ConditionObject type.
+ * These examples demonstrate how to construct conditions using the `Condition` type.
  */
-export type ConditionObject =
+export type Condition =
   | Record<
       string | Operator,
-      string | number | boolean | Date | null | undefined | Operators | ConditionObject[]
+      string | number | boolean | Date | null | undefined | Operators | Condition[]
     >
   | Operators
 
-// Export the new condition type
-export type Condition = ConditionObject
-
-// === Existing Guard Types (kept and potentially adapted later) ===
-// Base types
-export type RuleValue = unknown
 export type ConditionValue = unknown
-
-// Operator types
-export type OperatorValue = unknown
-export type TypedOperatorValue<T = OperatorValue> = T[] & { __type: symbol }
-export type OperatorFunction<T = OperatorValue> = (...values: T[]) => TypedOperatorValue<T>
-
-// Logical operator types (these will likely need to be adapted)
-export type LogicalOperatorValue = TypedOperatorValue<ConditionValue>
-export type ArrayOperatorValue = TypedOperatorValue<ConditionValue[]>
-export type ComparisonOperatorValue = TypedOperatorValue<number>
-export type StringOperatorValue = TypedOperatorValue<string>
-export type RegexOperatorValue = TypedOperatorValue<RegExp>
-export type DateOperatorValue = TypedOperatorValue<Date | string>
-export type DaysOperatorValue = TypedOperatorValue<number>
-export type DateRangeOperatorValue = TypedOperatorValue<[Date | string, Date | string]>
 
 // Action and Resource types
 export type Action<ExtendedActions extends string = never> =

@@ -28,9 +28,9 @@ export const checkConditionValue = (
     return condition.$or.some((subCondition) => checkConditionValue(subCondition, data))
   }
 
+  // The sub-condition must be false for $not
   if ('$not' in condition && condition.$not !== undefined) {
-    // The sub-condition must be false for $not
-    // Ensure condition.$not is treated as a NewCondition
+    // TODO: Fix type assertion here
     return !checkConditionValue(condition.$not as Condition, data)
   }
 
@@ -38,11 +38,12 @@ export const checkConditionValue = (
   // it must be a field condition or a direct value comparison.
   // This part handles evaluating individual field conditions.
   // For a field condition object, all its conditions must be true (implicit AND).
-  return Object.keys(condition).every((field) => {
-    const fieldCondition = condition[field]
+  return Object.entries(condition).every(([field, fieldCondition]) => {
+    // Skip logical operators we've already processed
+    if (['$and', '$or', '$not'].includes(field)) return true
+
     const fieldValue = getDeepValue(data, field)
 
-    // If the field condition is a direct value (not an operator object)
     if (
       typeof fieldCondition !== 'object' ||
       fieldCondition === null ||
