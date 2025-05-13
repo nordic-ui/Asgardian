@@ -1,4 +1,4 @@
-import type { Action, CreateAbility, Rule } from '../types'
+import type { Action, CreateAbility, Resource, Rule } from '../types'
 import { checkConditionValue } from './chechConditionValue'
 
 /**
@@ -19,42 +19,37 @@ export const createAbility = <
   const self = {} as CreateAbility<ExtendedActions, ExtendedResources>
 
   self.can = (action, resource, conditions) => {
-    if (Array.isArray(action)) {
-      action.forEach((act) => {
+    const actions = Array.isArray(action) ? action : [action]
+    const resources = Array.isArray(resource) ? resource : [resource]
+
+    // Create a rule for each combination of action and resource
+    for (const act of actions) {
+      for (const res of resources) {
         rules.push({
           action: act,
-          resource: resource,
+          resource: res,
           conditions,
         })
-      })
-    } else {
-      rules.push({
-        action: action,
-        resource: resource,
-        conditions,
-      })
+      }
     }
 
     return self
   }
 
   self.cannot = (action, resource, conditions) => {
-    if (Array.isArray(action)) {
-      action.forEach((act) => {
+    const actions = Array.isArray(action) ? action : [action]
+    const resources = Array.isArray(resource) ? resource : [resource]
+
+    // Create a rule for each combination of action and resource
+    for (const act of actions) {
+      for (const res of resources) {
         rules.push({
           action: act,
-          resource: resource,
+          resource: res,
           inverted: true,
           conditions,
         })
-      })
-    } else {
-      rules.push({
-        action: action,
-        resource: resource,
-        inverted: true,
-        conditions,
-      })
+      }
     }
 
     return self
@@ -62,31 +57,33 @@ export const createAbility = <
 
   self.isAllowed = (action, resource, conditions) => {
     const actionsToCheck = Array.isArray(action) ? action : [action]
+    const resourcesToCheck = Array.isArray(resource) ? resource : [resource]
 
     // Function to check if a rule matches the action and resource
     const ruleMatches = (
       rule: Rule<ExtendedActions, ExtendedResources>,
-      actionsToCheck: Action<ExtendedActions>[],
+      actions: Action<ExtendedActions>[],
+      resources: Resource<ExtendedResources>[],
     ) => {
       const ruleActions = Array.isArray(rule.action) ? rule.action : [rule.action]
       let resourceMatches = false
 
       resourceMatches = rule.resource === resource
 
-      if (rule.resource === 'all') {
+      if (rule.resource === 'all' || resources?.some((res) => rule.resource === res)) {
         resourceMatches = true
       }
 
       return (
         resourceMatches &&
-        actionsToCheck.some((act) => ruleActions.includes(act) || ruleActions.includes('manage'))
+        actions.some((act) => ruleActions.includes(act) || ruleActions.includes('manage'))
       )
     }
 
     let result = { isAllowed: false, rule: {} }
 
     for (const rule of rules) {
-      if (ruleMatches(rule, actionsToCheck)) {
+      if (ruleMatches(rule, actionsToCheck, resourcesToCheck)) {
         if (
           !rule.inverted &&
           (!rule.conditions ||
