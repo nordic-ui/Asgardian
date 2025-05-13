@@ -469,7 +469,7 @@ describe('checkConditionValue', () => {
           status: 'published',
           views: 150,
           author: { id: 101 },
-          tags: ['tech'],
+          tags: ['tech', 'idea'],
         }),
       ).toBe(true)
       expect(

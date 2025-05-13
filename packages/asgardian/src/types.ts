@@ -12,7 +12,7 @@ export type JsonObject =
  * It can be a simple key-value pair, a field with operators, or a logical combination of conditions.
  * It's a recursive type to allow for nested logical operators.
  */
-type ConditionObject =
+export type ConditionObject =
   | Record<
       string | Operator,
       string | number | boolean | Date | null | undefined | BaseOperator | ConditionObject[]
@@ -54,7 +54,8 @@ type LogicalOperator = {
   // $xnor?: ConditionObject[] // More complex, might need custom logic or representation
 }
 
-export type Operator = keyof (BaseOperator & LogicalOperator)
+export type Operators = BaseOperator & LogicalOperator
+export type Operator = keyof Operators
 
 // Export the new condition type
 export type NewCondition = ConditionObject
