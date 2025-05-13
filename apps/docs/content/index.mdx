@@ -75,8 +75,9 @@ Define rules based on user roles to enforce role-based access control.
 ```ts
 const userAbility = createAbility();
 
-userAbility.can('read', 'Post');
-userAbility.can(['create', 'update', 'delete'], 'Post', { authorId: 123 });
+userAbility.can(['read', 'create'], 'Post', { published: true });
+userAbility.can(['read', 'create'], 'Comment');
+userAbility.can(['update', 'delete'], ['Post', 'Comment'], { authorId: 123 });
 
 const canCreatePost = userAbility.isAllowed(['create', 'update', 'delete'], 'Post', { authorId: 123 });
 console.log(canCreatePost); // true

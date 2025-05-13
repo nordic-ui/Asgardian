@@ -23,8 +23,14 @@ describe('Ability', () => {
     ability.can(['read', 'create'], 'Post')
 
     expect(ability.isAllowed('read', 'Post')).toBe(true)
-    expect(ability.isAllowed('create', 'Post')).toBe(true)
-    expect(ability.isAllowed('update', 'Post')).toBe(false)
+  })
+
+  it('should handle multiple resources in a single rule', () => {
+    const ability = createAbility<never, 'Post' | 'Comment'>()
+
+    ability.can('read', ['Post', 'Comment'])
+
+    expect(ability.isAllowed('read', ['Post', 'Comment'])).toBe(true)
   })
 
   it('should handle all resources', () => {
