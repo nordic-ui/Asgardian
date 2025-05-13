@@ -1,4 +1,4 @@
-import { ConditionValue, DataObject, NewCondition } from '../types'
+import { ConditionValue, DataObject, Condition } from '../types'
 
 /**
  * Normalizes a date input to a `Date` object. If the input is a string, it will be parsed into a `Date`.
@@ -17,7 +17,7 @@ export const normalizeDate = (date: Date | string): Date => {
  * @param path The path to the property (e.g., "user.profile.id").
  * @returns The value of the property, or `undefined` if the path is invalid or the property doesn't exist.
  */
-export const getDeepValue = (obj: NewCondition | DataObject, path: string): ConditionValue => {
+export const getDeepValue = (obj: Condition | DataObject, path: string): ConditionValue => {
   if (!obj) {
     return undefined
   }

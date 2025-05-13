@@ -8,18 +8,6 @@ export type JsonObject =
   | JsonObject[]
 
 /**
- * Represents a condition for filtering resources.
- * It can be a simple key-value pair, a field with operators, or a logical combination of conditions.
- * It's a recursive type to allow for nested logical operators.
- */
-export type ConditionObject =
-  | Record<
-      string | Operator,
-      string | number | boolean | Date | null | undefined | BaseOperator | ConditionObject[]
-    >
-  | LogicalOperator
-
-/**
  * Represents the base comparison operators that can be applied to a field.
  */
 type BaseOperator = {
@@ -57,8 +45,51 @@ type LogicalOperator = {
 export type Operators = BaseOperator & LogicalOperator
 export type Operator = keyof Operators
 
+/**
+ * Represents a condition for filtering resources.
+ * It can be a simple key-value pair, a field with operators, or a logical combination of conditions.
+ * This type is recursive, allowing for nested logical operators like `$and`, `$or`, and `$not`.
+ *
+ * ### Usage examples:
+ *
+ * ```typescript
+  // Simple condition: Match a field with a specific value
+  const condition1: ConditionObject = { fieldName: "value" };
+
+  // Using comparison operators
+  const condition2: ConditionObject = { fieldName: { $gt: 10, $lt: 20 } };
+
+  // Logical combination of conditions
+  const condition3: ConditionObject = {
+    $and: [
+      { fieldName1: { $eq: "value1" } },
+      { fieldName2: { $in: ["value2", "value3"] } }
+    ]
+  };
+
+  // Nested logical operators
+  const condition4: ConditionObject = {
+    $or: [
+      { $and: [{ fieldName: { $gte: 5 } }, { fieldName: { $lte: 15 } }] },
+      { fieldName: { $eq: 20 } }
+    ]
+  };
+
+  // Negating a condition
+  const condition5: ConditionObject = { $not: { fieldName: { $eq: "value" } } };
+ * ```
+ *
+ * These examples demonstrate how to construct conditions using the ConditionObject type.
+ */
+export type ConditionObject =
+  | Record<
+      string | Operator,
+      string | number | boolean | Date | null | undefined | Operators | ConditionObject[]
+    >
+  | Operators
+
 // Export the new condition type
-export type NewCondition = ConditionObject
+export type Condition = ConditionObject
 
 // === Existing Guard Types (kept and potentially adapted later) ===
 // Base types
@@ -95,7 +126,7 @@ export type Rule<ExtendedActions extends string, ExtendedResources extends strin
   action: Action<ExtendedActions> | Action<ExtendedActions>[]
   resource: Resource<ExtendedResources>
   inverted?: boolean
-  conditions?: NewCondition // Use the new condition type
+  conditions?: Condition // Use the new condition type
 }
 
 // CreateAbility type - updated to use NewCondition
@@ -103,22 +134,22 @@ export type CreateAbility<ExtendedActions extends string, ExtendedResources exte
   can: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources>,
-    conditions?: NewCondition, // Use the new condition type
+    conditions?: Condition, // Use the new condition type
   ) => CreateAbility<ExtendedActions, ExtendedResources>
   cannot: (
     action: Action<ExtendedActions>,
     resource: Resource<ExtendedResources>,
-    conditions?: NewCondition, // Use the new condition type
+    conditions?: Condition, // Use the new condition type
   ) => CreateAbility<ExtendedActions, ExtendedResources>
   isAllowed: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources>,
-    conditions?: NewCondition, // Use the new condition type
+    conditions?: Condition, // Use the new condition type
   ) => boolean
   notAllowed: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources>,
-    conditions?: NewCondition, // Use the new condition type
+    conditions?: Condition, // Use the new condition type
   ) => boolean
   rules: Rule<ExtendedActions, ExtendedResources>[]
 }

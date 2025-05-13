@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
 import { checkConditionValue } from '../core/checkConditionValue'
-import { NewCondition } from '../types'
+import { Condition } from '../types'
 
 describe('checkConditionValue', () => {
   describe('Basic Field Conditions', () => {
     it('should return true for a direct field equality match', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: 'published',
       }
       expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
     })
 
     it('should return false for a direct field equality mismatch', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: 'draft',
       }
 
@@ -21,7 +21,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle nested field equality with direct value', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         'author.id': 101,
       }
 
@@ -29,7 +29,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle nested field equality mismatch with direct value', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         'author.id': 999,
       }
 
@@ -37,7 +37,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle boolean field equality', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         isFeatured: false,
       }
 
@@ -45,7 +45,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle null field equality', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         category: null,
       }
 
@@ -53,7 +53,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return false for a null field with non-null condition', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         category: 'some_category',
       }
 
@@ -63,13 +63,13 @@ describe('checkConditionValue', () => {
 
   describe('Operator Conditions', () => {
     it('should handle $eq operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: { $eq: 'published' },
       }
 
       expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         status: { $eq: 'draft' },
       }
 
@@ -77,13 +77,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $ne operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: { $ne: 'draft' },
       }
 
       expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         status: { $ne: 'published' },
       }
 
@@ -91,13 +91,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $in operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: { $in: ['published', 'archived'] },
       }
 
       expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         status: { $in: ['draft', 'pending'] },
       }
 
@@ -105,13 +105,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $nin operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: { $nin: ['draft', 'pending'] },
       }
 
       expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         status: { $nin: ['published', 'archived'] },
       }
 
@@ -119,13 +119,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $gt operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         views: { $gt: 100 },
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         views: { $gt: 200 },
       }
 
@@ -133,19 +133,19 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $gte operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         views: { $gte: 150 },
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      const condition2: NewCondition = {
+      const condition2: Condition = {
         views: { $gte: 100 },
       }
 
       expect(checkConditionValue(condition2, { views: 150 })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         views: { $gte: 200 },
       }
 
@@ -153,13 +153,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $lt operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         views: { $lt: 200 },
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         views: { $lt: 100 },
       }
 
@@ -167,19 +167,19 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $lte operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         views: { $lte: 150 },
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      const condition2: NewCondition = {
+      const condition2: Condition = {
         views: { $lte: 200 },
       }
 
       expect(checkConditionValue(condition2, { views: 150 })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         views: { $lte: 100 },
       }
 
@@ -187,13 +187,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $between operator for numbers', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         views: { $between: [100, 200] },
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         views: { $between: [0, 100] },
       }
 
@@ -201,13 +201,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $between operator for dates', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         createdAt: { $between: [new Date('2022-12-31'), new Date('2023-01-02')] },
       }
 
       expect(checkConditionValue(condition, { createdAt: new Date('2023-01-01') })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         createdAt: { $between: [new Date('2023-02-01'), new Date('2023-03-01')] },
       }
 
@@ -217,13 +217,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $regex operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         name: { $regex: /^Test/ },
       }
 
       expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         name: { $regex: /Article$/ },
       }
 
@@ -231,13 +231,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $contains operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         name: { $contains: 'Post' },
       }
 
       expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         name: { $contains: 'Article' },
       }
 
@@ -245,13 +245,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $startsWith operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         name: { $startsWith: 'Test' },
       }
 
       expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         name: { $startsWith: 'Draft' },
       }
 
@@ -259,13 +259,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $endsWith operator', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         name: { $endsWith: 'Post' },
       }
 
       expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         name: { $endsWith: 'Article' },
       }
 
@@ -275,7 +275,7 @@ describe('checkConditionValue', () => {
 
   describe('Combined Field Conditions', () => {
     it('should return true for multiple field conditions when all match', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: 'published',
         views: { $gt: 100 },
       }
@@ -284,7 +284,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return false for multiple field conditions when one mismatches', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: 'published',
         views: { $lt: 100 },
       }
@@ -294,13 +294,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle combined operators on a single field', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         views: { $gt: 100, $lt: 200 },
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      const mismatchCondition: NewCondition = {
+      const mismatchCondition: Condition = {
         views: { $gt: 100, $lt: 150 },
       }
 
@@ -310,7 +310,7 @@ describe('checkConditionValue', () => {
 
   describe('Logical Operator Conditions', () => {
     it('should handle $and operator where all sub-conditions match', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $and: [{ status: 'published' }, { views: { $gt: 100 } }, { 'author.isActive': true }],
       }
 
@@ -324,7 +324,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $and operator where one sub-condition mismatches', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $and: [{ status: 'published' }, { views: { $lt: 100 } }, { 'author.isActive': true }],
       }
 
@@ -338,7 +338,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle nested $and operators', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $and: [
           { status: 'published' },
           {
@@ -364,7 +364,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $or operator where one sub-condition matches', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $or: [{ status: 'draft' }, { views: { $gt: 100 } }, { 'author.id': 999 }],
       }
 
@@ -374,7 +374,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $or operator where all sub-conditions mismatch', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $or: [{ status: 'draft' }, { views: { $lt: 100 } }, { 'author.id': 999 }],
       }
 
@@ -384,7 +384,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle nested $or operators', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $or: [
           { status: 'draft' },
           {
@@ -410,7 +410,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $not operator where the sub-condition matches', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $not: { status: 'published' },
       }
 
@@ -418,7 +418,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $not operator where the sub-condition mismatches', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $not: { status: 'draft' },
       }
 
@@ -426,7 +426,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle $not operator with a field operator condition', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $not: { views: { $gt: 200 } },
       }
 
@@ -437,7 +437,7 @@ describe('checkConditionValue', () => {
 
   describe('Combined Logical and Field Conditions', () => {
     it('should handle a mix of logical and field conditions', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         $and: [
           { status: 'published' },
           {
@@ -450,7 +450,7 @@ describe('checkConditionValue', () => {
           { tags: { $in: ['tech'] } }, // matches (data.tags includes 'tech')
         ],
       }
-      const condition2: NewCondition = {
+      const condition2: Condition = {
         $and: [
           { status: 'draft' }, // mismatches (data.status is 'published')
           {
@@ -483,7 +483,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return correct result with different data object', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: 'draft',
         'author.isActive': false,
         isFeatured: true,
@@ -505,13 +505,13 @@ describe('checkConditionValue', () => {
     })
 
     it('should return true for an empty condition object', () => {
-      const condition: NewCondition = {} // Technically an empty AND equivalent
+      const condition: Condition = {} // Technically an empty AND equivalent
 
       expect(checkConditionValue(condition, {})).toBe(true)
     })
 
     it('should return false for a condition with unknown operator and data does not match', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         // @ts-expect-error - This is to simulate an unknown operator
         views: { $unknownOperator: 100 },
       }
@@ -520,7 +520,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return false for a field condition on a non-existent nested path', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         'nonExistent.field': 'someValue',
       }
 
@@ -528,7 +528,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return false for an operator condition on a non-existent nested path', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         'nonExistent.field': { $gt: 10 },
       }
 
@@ -536,7 +536,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return true for an equality condition on a non-existent nested path when the condition value is also undefined', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         'nonExistent.field': undefined,
       }
 
@@ -544,7 +544,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return false for an equality condition on an existing field when the condition value is undefined', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         status: undefined,
       }
 
@@ -552,7 +552,7 @@ describe('checkConditionValue', () => {
     })
 
     it('should return false for a condition on a non-object field', () => {
-      const condition: NewCondition = {
+      const condition: Condition = {
         'status.nested': 'value', // 'status' is a string, cannot have nested properties
       }
 
@@ -560,21 +560,21 @@ describe('checkConditionValue', () => {
     })
 
     it('should handle null values correctly with $eq', () => {
-      const condition: NewCondition = { value: { $eq: null } }
+      const condition: Condition = { value: { $eq: null } }
 
       expect(checkConditionValue(condition, { value: null })).toBe(true)
 
-      const conditionMismatch: NewCondition = { value: { $eq: 'some value' } }
+      const conditionMismatch: Condition = { value: { $eq: 'some value' } }
 
       expect(checkConditionValue(conditionMismatch, { value: null })).toBe(false)
     })
 
     it('should handle null values correctly with $ne', () => {
-      const condition: NewCondition = { value: { $ne: 'some value' } }
+      const condition: Condition = { value: { $ne: 'some value' } }
 
       expect(checkConditionValue(condition, { value: null })).toBe(true)
 
-      const conditionMismatch: NewCondition = { value: { $ne: null } }
+      const conditionMismatch: Condition = { value: { $ne: null } }
 
       expect(checkConditionValue(conditionMismatch, { value: null })).toBe(false)
     })

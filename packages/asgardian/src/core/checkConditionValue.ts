@@ -1,4 +1,4 @@
-import { NewCondition, DataObject } from '../types'
+import { Condition, DataObject } from '../types'
 import { evaluateFieldOperators } from './evaluateFieldOperators'
 import { getDeepValue } from './utils'
 
@@ -12,8 +12,8 @@ import { getDeepValue } from './utils'
  * @returns a `boolean` value based on whether the condition is met or not.
  */
 export const checkConditionValue = (
-  condition: NewCondition | undefined,
-  data: NewCondition | DataObject,
+  condition: Condition | undefined,
+  data: Condition | DataObject,
 ): boolean => {
   // If no conditions are defined, it's considered a match (empty condition means no restrictions)
   if (!condition) return true
@@ -31,7 +31,7 @@ export const checkConditionValue = (
   if ('$not' in condition && condition.$not !== undefined) {
     // The sub-condition must be false for $not
     // Ensure condition.$not is treated as a NewCondition
-    return !checkConditionValue(condition.$not as NewCondition, data)
+    return !checkConditionValue(condition.$not as Condition, data)
   }
 
   // If it's not a logical operator at the top level,
