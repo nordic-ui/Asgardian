@@ -69,19 +69,16 @@ describe('Ability', () => {
   it('should respect conditions when checking permissions', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('read', 'Post', { published: true })
+    ability.can('read', 'Post', { published: { $eq: true } })
 
-    const publishedPost = { published: true }
-    const draftPost = { published: false }
-
-    expect(ability.isAllowed('read', 'Post', publishedPost)).toBe(true)
-    expect(ability.isAllowed('read', 'Post', draftPost)).toBe(false)
+    expect(ability.isAllowed('read', 'Post', { published: true })).toBe(true)
+    expect(ability.isAllowed('read', 'Post', { published: false })).toBe(false)
   })
 
   it('should handle multiple conditions', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('manage', 'Post', { authorId: 123, published: true })
+    ability.can('manage', 'Post', { $and: [{ authorId: 123 }, { published: true }] })
 
     expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBe(true)
     expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: false })).toBe(false)
@@ -109,7 +106,7 @@ describe('Ability', () => {
     const userAbility = createAbility<never, 'Post' | 'Comment'>()
 
     userAbility.can('read', 'Post')
-    userAbility.can(['create', 'update', 'delete'], 'Post', { authorId: 123 })
+    userAbility.can(['create', 'update', 'delete'], 'Post', { authorId: { $eq: 123 } })
     userAbility.can(['create', 'read'], 'Comment')
 
     expect(userAbility.isAllowed('read', 'Post')).toBe(true)
@@ -118,7 +115,7 @@ describe('Ability', () => {
 
     const visitorAbility = createAbility<never, 'Post' | 'Comment'>()
 
-    visitorAbility.can('read', 'Post', { published: true })
+    visitorAbility.can('read', 'Post', { published: { $eq: true } })
     visitorAbility.can('read', 'Comment')
 
     expect(visitorAbility.isAllowed('read', 'Post', { published: true })).toBe(true)

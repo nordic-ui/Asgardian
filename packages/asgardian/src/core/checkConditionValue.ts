@@ -2,6 +2,7 @@ import {
   NewCondition,
   ConditionValue,
   DataObject,
+  Operator,
   // We might need some of the operator types later
   // for type checking or specific operator logic
   // TypedOperatorValue,
@@ -24,12 +25,12 @@ function getDeepValue(obj: DataObject, path: string): ConditionValue {
   }
 
   const keys = path.split('.')
-  let current: any = obj // Use 'any' for intermediate checks due to potential nested structures
+  let current: Record<PropertyKey, string> = obj
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
     // Check for null or non-object before attempting property access
-    if (current === null || typeof current !== 'object' || !(key in current)) {
+    if (!key || current === null || typeof current !== 'object' || !(key in current)) {
       return undefined // Path is invalid or property doesn't exist at this level
     }
     current = current[key]
@@ -107,7 +108,7 @@ export function checkConditionValue(
  */
 function evaluateFieldOperators(
   fieldValue: ConditionValue,
-  operators: Record<string, ConditionValue>,
+  operators: Record<Operator, ConditionValue>,
 ): boolean {
   // All operators on a single field must be satisfied (implicit AND)
   return Object.keys(operators).every((operator) => {
