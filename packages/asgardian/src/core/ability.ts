@@ -1,5 +1,5 @@
 import type { Action, CreateAbility, Rule } from '../types'
-import { checkConditionValue } from './chechConditionValue'
+import { checkConditionValue } from './checkConditionValue'
 
 /**
  * Creates a new ability instance with customizable actions and resources
