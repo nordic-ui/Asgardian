@@ -1,6 +1,6 @@
-import { Condition, DataObject } from '../types'
+import { Condition } from '../types'
 import { evaluateFieldOperators } from './evaluateFieldOperators'
-import { getDeepValue } from './utils'
+import { compareArrays, compareObjects, getDeepValue, isRecord } from './utils'
 
 /**
  * Evaluates a condition against a given data object.
@@ -13,7 +13,7 @@ import { getDeepValue } from './utils'
  */
 export const checkConditionValue = (
   condition: Condition | undefined,
-  data: Condition | DataObject,
+  data: Condition | undefined,
 ): boolean => {
   // If no conditions are defined, it's considered a match (empty condition means no restrictions)
   if (!condition) return true
@@ -30,8 +30,7 @@ export const checkConditionValue = (
 
   // The sub-condition must be false for $not
   if ('$not' in condition && condition.$not !== undefined) {
-    // TODO: Fix type assertion here
-    return !checkConditionValue(condition.$not as Condition, data)
+    return !checkConditionValue(condition.$not, data)
   }
 
   // If it's not a logical operator at the top level,
@@ -44,11 +43,16 @@ export const checkConditionValue = (
 
     const fieldValue = getDeepValue(data, field)
 
-    if (
-      typeof fieldCondition !== 'object' ||
-      fieldCondition === null ||
-      Array.isArray(fieldCondition)
-    ) {
+    // If both fieldValue and fieldCondition are arrays, check for equality
+    if (Array.isArray(fieldValue) && Array.isArray(fieldCondition)) {
+      return compareArrays(fieldValue, fieldCondition)
+    }
+
+    if (isRecord(fieldValue) && isRecord(fieldCondition)) {
+      return compareObjects(fieldValue, fieldCondition)
+    }
+
+    if (fieldCondition === null || !isRecord(fieldCondition) || Array.isArray(fieldCondition)) {
       return fieldValue === fieldCondition
     }
 

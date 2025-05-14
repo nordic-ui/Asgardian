@@ -7,8 +7,12 @@ describe('Ability', () => {
   it('should have default action and resource types', () => {
     const ability = createAbility()
 
-    expectTypeOf(ability.can).parameter(0).toExtend<Action<never> | Action<never>[]>()
-    expectTypeOf(ability.can).parameter(1).toExtend<Resource<never> | Resource<never>[]>()
+    expect(
+      expectTypeOf(ability.can).parameter(0).toExtend<Action<never> | Action<never>[]>(),
+    ).toBeTruthy()
+    expect(
+      expectTypeOf(ability.can).parameter(1).toExtend<Resource<never> | Resource<never>[]>(),
+    ).toBeTruthy()
   })
 
   it('should allow extending actions and resource types', () => {

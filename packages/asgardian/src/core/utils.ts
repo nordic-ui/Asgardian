@@ -46,3 +46,55 @@ export const getDeepValue = (obj: unknown, path: string): ConditionValue => {
 
   return current
 }
+
+/**
+ * Deeply compares two arrays to determine if they're identical.
+ * Handles nested arrays and objects.
+ *
+ * @param a The first array to compare.
+ * @param b The second array to compare.
+ * @returns `true` if the arrays are equal, `false` otherwise.
+ */
+export const compareArrays = (a: unknown[], b: unknown[]): boolean => {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false
+
+  return a.every((item, index) => {
+    const otherItem = b[index]
+
+    if (Array.isArray(item) && Array.isArray(otherItem)) return compareArrays(item, otherItem)
+    else if (isRecord(item) && isRecord(otherItem)) return compareObjects(item, otherItem)
+
+    return item === otherItem
+  })
+}
+
+/**
+ * Deeply compares two objects (records) to determine if they're identical.
+ * Handles nested objects and arrays.
+ *
+ * @param a The first object to compare.
+ * @param b The second object to compare.
+ * @returns `true` if the objects are equal, `false` otherwise.
+ */
+export const compareObjects = (a: Record<string, unknown>, b: Record<string, unknown>): boolean => {
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+
+  if (aKeys.length !== bKeys.length) return false
+
+  return aKeys.every((key) => {
+    const item = a[key]
+    const otherItem = b[key]
+
+    if (Array.isArray(item) && Array.isArray(otherItem)) return compareArrays(item, otherItem)
+    else if (isRecord(item) && isRecord(otherItem)) return compareObjects(item, otherItem)
+
+    return item === otherItem
+  })
+}
+
+/**
+ * Type guard that checks whether a given value is a non-null object (record).
+ */
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)

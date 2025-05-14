@@ -3,7 +3,7 @@
 type Primitive = string | number | boolean | Date | null | undefined
 export type JsonObject =
   | {
-      [key: PropertyKey]: Primitive | Primitive[] | JsonObject | JsonObject[]
+      [key: PropertyKey]: Primitive | Primitive[] | JsonObject
     }
   | JsonObject[]
 
@@ -19,7 +19,7 @@ type BaseOperator = {
   $gte?: number | Date
   $lt?: number | Date
   $lte?: number | Date
-  $between?: [start: number, end: number] | [startDate: Date, endDate: Date]
+  $between?: [from: number, to: number] | [from: Date, to: Date]
   $regex?: RegExp
   $contains?: string
   $startsWith?: string
@@ -43,7 +43,7 @@ type LogicalOperator = {
 }
 
 export type Operators = BaseOperator & LogicalOperator
-export type Operator = keyof Operators
+export type ValidOperator = keyof Operators
 
 /**
  * Represents a condition for filtering resources.
@@ -82,12 +82,12 @@ export type Operator = keyof Operators
  * These examples demonstrate how to construct conditions using the `Condition` type.
  */
 export type Condition =
-  | Record<
-      string | Operator,
-      string | number | boolean | Date | null | undefined | Operators | Condition[]
-    >
   | Operators
-
+  | ({
+      [key: string]: Primitive | Primitive[] | Operators | Condition | Condition[]
+    } & {
+      [K in `$${string}` as Exclude<K, ValidOperator>]: never
+    })
 export type ConditionValue = unknown
 
 // Action and Resource types
@@ -132,6 +132,3 @@ export type CreateAbility<ExtendedActions extends string, ExtendedResources exte
   ) => boolean
   rules: Rule<ExtendedActions, ExtendedResources>[]
 }
-
-// TODO: Figure out if needed
-export type DataObject = JsonObject | null | undefined

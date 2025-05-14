@@ -6,216 +6,202 @@ title: Operators
 
 Asgardian provides a rich set of operators for complex permission rules. These operators can be used in condition objects to create sophisticated access control rules.
 
-## Logical Operators
+## Basic Field Conditions
 
-Basic boolean logic operators for simple conditions.
-
-### `or(...values)`
-
-Matches if any of the values match the condition.
+The simplest condition is direct equality matching:
 
 ```ts
 ability.can('read', 'Post', { 
-  status: operators.or('published', 'archived')
+  status: 'published'
 })
 ```
 
-### `and(...values)`
+This checks if the resource's `status` field equals exactly `'published'`.
 
-Matches if all values are present in an array.
+## Logical Operators
+
+### `$and`
+
+Matches if all conditions are true:
 
 ```ts
-ability.can('update', 'Post', { 
-  tags: operators.and('important', 'urgent')
+ability.can('manage', 'Post', { 
+  $and: [
+    { status: 'published' },
+    { views: { $gt: 100 } },
+    { 'author.isActive': true }
+  ]
 })
 ```
 
-### `nand(...values)`
+### `$or`
 
-NOT AND - Matches if NOT all values are present.
-
-```ts
-ability.can('update', 'Post', { 
-  tags: operators.nand('draft', 'archived')
-})
-```
-### `nand(...values)`
-
-NOT AND - Matches if NOT all values are present.
+Matches if any condition is true:
 
 ```ts
-ability.can('update', 'Post', { 
-  tags: operators.nand('draft', 'archived')
+ability.can('manage', 'Post', { 
+  $or: [
+    { status: 'draft' },
+    { views: { $gt: 1000 } },
+    { 'author.id': 999 }
+  ]
 })
 ```
 
-### `nor(...values)`
+### `$not`
 
-NOT OR - Matches if NONE of the values are present.
-
-```ts
-ability.can('delete', 'Post', { 
-  status: operators.nor('protected', 'archived')
-})
-```
-
-### `xor(...values)`
-
-Exclusive OR - Matches if EXACTLY ONE value is present.
+Negates a condition:
 
 ```ts
-ability.can('create', 'Post', { 
-  flags: operators.xor('featured', 'sponsored')
-})
-```
-
-### `xnor(...values)`
-
-Exclusive NOR - Matches if ALL or NONE of the values are present.
-
-```ts
-ability.can('create', 'Post', { 
-  roles: operators.xnor('editor', 'reviewer')
+ability.can('manage', 'Post', { 
+  $not: { status: 'archived' }
 })
 ```
 
 ## Comparison Operators
 
-Numeric comparison operators for quantitative rules.
+### `$eq`, `$ne`
 
-### `gt(value), gte(value), lt(value), lte(value)`
-
-Greater than, greater than or equal, less than, less than or equal.
+Equal and not equal operators:
 
 ```ts
 ability.can('read', 'Post', { 
-  views: operators.gt(1000)
+  status: { $eq: 'published' }
 })
 
 ability.can('read', 'Post', { 
-  views: operators.gte(1000)
-})
-
-ability.can('read', 'Post', { 
-  views: operators.lt(1000)
-})
-
-ability.can('read', 'Post', { 
-  views: operators.lte(1000)
+  status: { $ne: 'draft' }
 })
 ```
 
-### `between(min, max)`
+### `$in`, `$nin`
 
-Matches if value is within range (inclusive).
+Check if value is in or not in an array:
 
 ```ts
-ability.can('update', 'Post', { 
-  rating: operators.between(4, 5)
+ability.can('read', 'Post', { 
+  status: { $in: ['published', 'archived'] }
+})
+
+ability.can('read', 'Post', { 
+  status: { $nin: ['draft', 'pending'] }
+})
+```
+
+### `$gt`, `$gte`, `$lt`, `$lte`
+
+Numeric comparison operators:
+
+```ts
+ability.can('read', 'Post', { 
+  views: { $gt: 100 }
+})
+
+ability.can('read', 'Post', { 
+  views: { $gte: 100 }
+})
+
+ability.can('read', 'Post', { 
+  views: { $lt: 1000 }
+})
+
+ability.can('read', 'Post', { 
+  views: { $lte: 1000 }
+})
+```
+
+### `$between`
+
+Check if value is within a range (inclusive):
+
+```ts
+ability.can('read', 'Post', { 
+  views: { $between: [100, 1000] }
+})
+
+// Also works with dates
+ability.can('read', 'Post', { 
+  publishDate: { $between: [new Date('2023-01-01'), new Date('2023-12-31')] }
 })
 ```
 
 ## String Operators
 
-Text-based comparison operators.
+### `$contains`, `$startsWith`, `$endsWith`
 
-### `contains(value), startsWith(value), endsWith(value)`
-
-String pattern matching operators.
+String pattern matching operators:
 
 ```ts
 ability.can('read', 'Post', { 
-  title: operators.contains('important')
+  title: { $contains: 'important' }
 })
 
 ability.can('read', 'Post', { 
-  title: operators.startsWith('important')
+  title: { $startsWith: 'Draft:' }
 })
 
 ability.can('read', 'Post', { 
-  title: operators.endsWith('important')
+  title: { $endsWith: 'Report' }
 })
 ```
 
-### `matches(regex)`
+### `$regex`
 
-Regular expression matching.
-
-```ts
-ability.can('update', 'Post', { 
-  slug: operators.matches(/^draft-/i)
-})
-```
-
-## Array Operators
-
-Collection-based operators for array values.
-
-### `includesAll(values)`
-
-Matches if array includes all specified values.
-
-```ts
-ability.can('manage', 'Post', { 
-  tags: operators.includesAll(['important', 'urgent'])
-})
-```
-
-### `includesAny(values)`
-
-Matches if array includes any of the specified values.
-
-```ts
-ability.can('manage', 'Post', { 
-  tags: operators.includesAny(['important', 'urgent'])
-})
-```
-
-## Date Operators
-
-Time-based comparison operators.
-
-### `before(date), after(date)`
-
-Date comparison operators.
+Regular expression matching:
 
 ```ts
 ability.can('read', 'Post', { 
-  publishDate: operators.before('2025-12-31')
-})
-
-ability.can('read', 'Post', { 
-  publishDate: operators.after('2025-12-31')
+  slug: { $regex: /^draft-/ }
 })
 ```
 
-### `within(date)`
+## Combining Operators
 
-Date range operator.
+You can combine operators for complex conditions:
 
 ```ts
-ability.can('read', 'Post', { 
-  publishDate: operators.within([startDate, endDate])
+ability.can('manage', 'Post', {
+  $and: [
+    { status: 'published' },
+    {
+      $or: [
+        { views: { $gt: 1000 } },
+        { 'author.id': 101 }
+      ]
+    },
+    { tags: { $in: ['important'] } }
+  ]
 })
 ```
 
-### `pastDays(days), futureDays(days)`
-
-Relative date range operators.
+You can also combine multiple operators on a single field:
 
 ```ts
-ability.can('read', 'Post', { 
-  publishDate: operators.pastDays(7)
-})
-
-ability.can('read', 'Post', { 
-  publishDate: operators.futureDays(7)
+ability.can('read', 'Post', {
+  views: { $gt: 100, $lt: 1000 }
 })
 ```
+
+## Nested Field Access
+
+You can access nested fields using dot notation:
+
+```ts
+ability.can('manage', 'Post', {
+  'author.id': 101,
+  'metadata.isPublic': true
+})
+```
+
+## Edge Cases
+
+- If a condition is `undefined` or an empty object `{}`, it will always match
+- Fields that don't exist in the resource are treated as `undefined`
+- When checking against `null` values, be explicit in your conditions
 
 ## Summary
 
-Operators are a powerful feature of Asgardian that allow you to create sophisticated permission rules. By combining different operators, you can express complex conditions in a clear and maintainable way.
+Operators in Asgardian provide a powerful way to express complex permission rules. By combining different operators, you can create sophisticated conditions for fine-grained access control.
 
 > [!TIP]
 >

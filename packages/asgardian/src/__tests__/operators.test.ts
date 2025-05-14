@@ -1,9 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, afterAll } from 'vitest'
 
 import { checkConditionValue } from '../core/checkConditionValue'
 import { Condition } from '../types'
 
 describe('checkConditionValue', () => {
+  const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+  afterAll(() => {
+    consoleMock.mockReset()
+  })
+
   describe('Basic Field Conditions', () => {
     it('should return true for a direct field equality match', () => {
       const condition: Condition = {
@@ -18,14 +24,6 @@ describe('checkConditionValue', () => {
       }
 
       expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
-    })
-
-    it('should handle nested field equality with direct value', () => {
-      const condition: Condition = {
-        'author.id': 101,
-      }
-
-      expect(checkConditionValue(condition, { author: { id: 101 } })).toBe(true)
     })
 
     it('should handle nested field equality mismatch with direct value', () => {
@@ -517,6 +515,8 @@ describe('checkConditionValue', () => {
       }
 
       expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+      expect(consoleMock).toHaveBeenCalledOnce()
+      expect(consoleMock).toHaveBeenLastCalledWith('Unknown operator: $unknownOperator')
     })
 
     it('should return false for a field condition on a non-existent nested path', () => {

@@ -1,4 +1,5 @@
-import { ConditionValue, Operator, Operators } from '../types'
+import { ConditionValue, Operators } from '../types'
+import { isRecord } from './utils'
 
 /**
  * Evaluates the operators applied to a specific field value.
@@ -9,12 +10,10 @@ import { ConditionValue, Operator, Operators } from '../types'
  */
 export const evaluateFieldOperators = (
   fieldValue: ConditionValue,
-  operators: Operators,
+  operators: Operators & Record<string, ConditionValue>,
 ): boolean => {
   // All operators on a single field must be satisfied (implicit AND)
-  return Object.keys(operators).every((op) => {
-    // TODO: Make use of a type guard instead of assertion
-    const operator = op as Operator
+  return Object.keys(operators).every((operator) => {
     const operatorValue = operators[operator]
 
     switch (operator) {
@@ -142,7 +141,17 @@ export const evaluateFieldOperators = (
       }
 
       default: {
-        console.warn(`Unknown operator: ${operator}`)
+        if (operator.startsWith('$')) {
+          console.warn(`Unknown operator: ${operator}`)
+          return false
+        }
+
+        // This is a nested field access, not an operator
+        if (fieldValue && typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+          const typedFieldValue = isRecord(fieldValue) ? fieldValue : {}
+          return typedFieldValue[operator] === operatorValue
+        }
+
         return false
       }
     }
