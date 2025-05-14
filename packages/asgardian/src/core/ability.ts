@@ -1,5 +1,5 @@
 import type { Action, CreateAbility, Resource, Rule } from '../types'
-import { checkConditionValue } from './chechConditionValue'
+import { checkConditionValue } from './checkConditionValue'
 
 /**
  * Creates a new ability instance with customizable actions and resources
@@ -9,7 +9,8 @@ import { checkConditionValue } from './chechConditionValue'
  *
  * @example
  * const ability = createAbility<'publish', 'Post'>()
- * ability.can('publish', 'Post')
+ * ability.can('read', 'Post')
+ * ability.cannot('publish', 'Post')
  */
 export const createAbility = <
   ExtendedActions extends string = 'manage' | 'create' | 'read' | 'update' | 'delete',
@@ -84,15 +85,12 @@ export const createAbility = <
 
     for (const rule of rules) {
       if (ruleMatches(rule, actionsToCheck, resourcesToCheck)) {
-        if (
-          !rule.inverted &&
-          (!rule.conditions ||
-            Object.entries(rule.conditions).every(([key, value]) =>
-              checkConditionValue(value, conditions?.[key]),
-            ))
-        ) {
+        // Check if conditions match
+        const conditionsMatch = !rule.conditions || checkConditionValue(rule.conditions, conditions)
+
+        if (!rule.inverted && conditionsMatch) {
           result = { isAllowed: true, rule }
-        } else {
+        } else if (rule.inverted && conditionsMatch) {
           result = { isAllowed: false, rule }
         }
       }

@@ -1,298 +1,582 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it, vi, afterAll } from 'vitest'
 
-import { createAbility } from '../core/ability'
-import * as operators from '../operators'
+import { checkConditionValue } from '../core/checkConditionValue'
+import { Condition } from '../types'
 
-describe('Ability operators', () => {
-  describe('Logical operators', () => {
-    it('should handle or operator', () => {
-      const ability = createAbility<never, 'Post'>()
+describe('checkConditionValue', () => {
+  const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
 
-      ability.can('read', 'Post', { status: operators.or('published', 'archived') })
-      ability.can('update', 'Post', { tags: operators.or('important', 'urgent') })
+  afterAll(() => {
+    consoleMock.mockReset()
+  })
 
-      expect(ability.isAllowed('read', 'Post', { status: 'published' })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { status: 'draft' })).toBe(false)
-
-      expect(ability.isAllowed('update', 'Post', { tags: ['urgent', 'normal'] })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { tags: ['normal'] })).toBe(false)
+  describe('Basic Field Conditions', () => {
+    it('should return true for a direct field equality match', () => {
+      const condition: Condition = {
+        status: 'published',
+      }
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
     })
 
-    it('should handle and operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should return false for a direct field equality mismatch', () => {
+      const condition: Condition = {
+        status: 'draft',
+      }
 
-      ability.can('update', 'Post', { tags: operators.and('important', 'urgent') })
-
-      expect(ability.isAllowed('update', 'Post', { tags: ['important', 'urgent'] })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { tags: ['important'] })).toBe(false)
-      expect(ability.isAllowed('update', 'Post', { tags: ['urgent'] })).toBe(false)
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
     })
 
-    it('should handle not operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle nested field equality mismatch with direct value', () => {
+      const condition: Condition = {
+        'author.id': 999,
+      }
 
-      ability.can('delete', 'Post', { category: operators.not('protected') })
+      expect(checkConditionValue(condition, { author: { id: 101 } })).toBe(false)
+    })
 
-      expect(ability.isAllowed('delete', 'Post', { category: 'general' })).toBe(true)
-      expect(ability.isAllowed('delete', 'Post', { category: 'protected' })).toBe(false)
+    it('should handle boolean field equality', () => {
+      const condition: Condition = {
+        isFeatured: false,
+      }
+
+      expect(checkConditionValue(condition, { isFeatured: false })).toBe(true)
+    })
+
+    it('should handle null field equality', () => {
+      const condition: Condition = {
+        category: null,
+      }
+
+      expect(checkConditionValue(condition, { category: null })).toBe(true)
+    })
+
+    it('should return false for a null field with non-null condition', () => {
+      const condition: Condition = {
+        category: 'some_category',
+      }
+
+      expect(checkConditionValue(condition, { category: null })).toBe(false)
     })
   })
 
-  describe('Advanced logical operators', () => {
-    it('should handle NAND operator', () => {
-      const ability = createAbility<never, 'Post'>()
+  describe('Operator Conditions', () => {
+    it('should handle $eq operator', () => {
+      const condition: Condition = {
+        status: { $eq: 'published' },
+      }
 
-      ability.can('update', 'Post', { tags: operators.nand('draft', 'archived') })
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      // True if NOT both draft AND archived are present
-      expect(ability.isAllowed('update', 'Post', { tags: ['draft'] })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { tags: ['archived'] })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { tags: ['draft', 'archived'] })).toBe(false)
-      expect(ability.isAllowed('update', 'Post', { tags: ['published'] })).toBe(true)
+      const mismatchCondition: Condition = {
+        status: { $eq: 'draft' },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
     })
 
-    it('should handle NOR operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $ne operator', () => {
+      const condition: Condition = {
+        status: { $ne: 'draft' },
+      }
 
-      ability.can('delete', 'Post', { status: operators.nor('protected', 'archived') })
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      // True only if NEITHER protected NOR archived are present
-      expect(ability.isAllowed('delete', 'Post', { status: ['draft'] })).toBe(true)
-      expect(ability.isAllowed('delete', 'Post', { status: ['protected'] })).toBe(false)
-      expect(ability.isAllowed('delete', 'Post', { status: ['archived'] })).toBe(false)
-      expect(ability.isAllowed('delete', 'Post', { status: ['protected', 'archived'] })).toBe(false)
+      const mismatchCondition: Condition = {
+        status: { $ne: 'published' },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
     })
 
-    it('should handle XOR operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $in operator', () => {
+      const condition: Condition = {
+        status: { $in: ['published', 'archived'] },
+      }
 
-      ability.can('create', 'Post', { flags: operators.xor('featured', 'sponsored') })
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      // True only if EXACTLY ONE of featured OR sponsored is present
-      expect(ability.isAllowed('create', 'Post', { flags: ['featured'] })).toBe(true)
-      expect(ability.isAllowed('create', 'Post', { flags: ['sponsored'] })).toBe(true)
-      expect(ability.isAllowed('create', 'Post', { flags: ['featured', 'sponsored'] })).toBe(false)
-      expect(ability.isAllowed('create', 'Post', { flags: ['regular'] })).toBe(false)
+      const mismatchCondition: Condition = {
+        status: { $in: ['draft', 'pending'] },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
     })
 
-    it('should handle XNOR operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $nin operator', () => {
+      const condition: Condition = {
+        status: { $nin: ['draft', 'pending'] },
+      }
 
-      ability.can('create', 'Post', { roles: operators.xnor('editor', 'reviewer') })
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
 
-      // True if user has BOTH roles or NEITHER role
-      expect(ability.isAllowed('create', 'Post', { roles: ['editor', 'reviewer'] })).toBe(true)
-      expect(ability.isAllowed('create', 'Post', { roles: ['author'] })).toBe(true)
-      expect(ability.isAllowed('create', 'Post', { roles: ['editor'] })).toBe(false)
-      expect(ability.isAllowed('create', 'Post', { roles: ['reviewer'] })).toBe(false)
-    })
-  })
+      const mismatchCondition: Condition = {
+        status: { $nin: ['published', 'archived'] },
+      }
 
-  describe('Comparison operators', () => {
-    it('should handle greater than', () => {
-      const ability = createAbility<never, 'Post'>()
-
-      ability.can('read', 'Post', { views: operators.gt(1000) })
-
-      expect(ability.isAllowed('read', 'Post', { views: 1500 })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { views: 1000 })).toBe(false)
+      expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
     })
 
-    it('should handle greater than or equal', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $gt operator', () => {
+      const condition: Condition = {
+        views: { $gt: 100 },
+      }
 
-      ability.can('read', 'Post', { views: operators.gte(1000) })
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      expect(ability.isAllowed('read', 'Post', { views: 1500 })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { views: 1000 })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { views: 500 })).toBe(false)
+      const mismatchCondition: Condition = {
+        views: { $gt: 200 },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
     })
 
-    it('should handle less than', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $gte operator', () => {
+      const condition: Condition = {
+        views: { $gte: 150 },
+      }
 
-      ability.can('read', 'Post', { views: operators.lt(1000) })
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      expect(ability.isAllowed('read', 'Post', { views: 500 })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { views: 1000 })).toBe(false)
+      const condition2: Condition = {
+        views: { $gte: 100 },
+      }
+
+      expect(checkConditionValue(condition2, { views: 150 })).toBe(true)
+
+      const mismatchCondition: Condition = {
+        views: { $gte: 200 },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
     })
 
-    it('should handle less than or equal', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $lt operator', () => {
+      const condition: Condition = {
+        views: { $lt: 200 },
+      }
 
-      ability.can('read', 'Post', { views: operators.lte(1000) })
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      expect(ability.isAllowed('read', 'Post', { views: 500 })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { views: 1000 })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { views: 1500 })).toBe(false)
+      const mismatchCondition: Condition = {
+        views: { $lt: 100 },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
     })
 
-    it('should handle between operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $lte operator', () => {
+      const condition: Condition = {
+        views: { $lte: 150 },
+      }
 
-      ability.can('update', 'Post', { rating: operators.between(4, 5) })
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      expect(ability.isAllowed('update', 'Post', { rating: 4 })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { rating: 4.5 })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { rating: 5 })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { rating: 3.9999 })).toBe(false)
-      expect(ability.isAllowed('update', 'Post', { rating: 5.0001 })).toBe(false)
-    })
-  })
+      const condition2: Condition = {
+        views: { $lte: 200 },
+      }
 
-  describe('String operators', () => {
-    it('should handle contains operator', () => {
-      const ability = createAbility<never, 'Post'>()
+      expect(checkConditionValue(condition2, { views: 150 })).toBe(true)
 
-      ability.can('read', 'Post', { title: operators.contains('important') })
+      const mismatchCondition: Condition = {
+        views: { $lte: 100 },
+      }
 
-      expect(ability.isAllowed('read', 'Post', { title: 'This is an important notice' })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { title: 'This is a regular notice' })).toBe(false)
+      expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
     })
 
-    it('should handle startsWith operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $between operator for numbers', () => {
+      const condition: Condition = {
+        views: { $between: [100, 200] },
+      }
 
-      ability.can('read', 'Post', { title: operators.startsWith('important') })
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      expect(ability.isAllowed('read', 'Post', { title: 'important notice' })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { title: 'some important notice' })).toBe(false)
-      expect(ability.isAllowed('read', 'Post', { title: 'regular notice' })).toBe(false)
+      const mismatchCondition: Condition = {
+        views: { $between: [0, 100] },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
     })
 
-    it('should handle endsWith operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $between operator for dates', () => {
+      const condition: Condition = {
+        createdAt: { $between: [new Date('2022-12-31'), new Date('2023-01-02')] },
+      }
 
-      ability.can('read', 'Post', { title: operators.endsWith('important') })
+      expect(checkConditionValue(condition, { createdAt: new Date('2023-01-01') })).toBe(true)
 
-      expect(ability.isAllowed('read', 'Post', { title: 'this notice is important' })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { title: 'regular notice' })).toBe(false)
-    })
+      const mismatchCondition: Condition = {
+        createdAt: { $between: [new Date('2023-02-01'), new Date('2023-03-01')] },
+      }
 
-    it('should handle matches operator', () => {
-      const ability = createAbility<never, 'Post'>()
-
-      ability.can('update', 'Post', { slug: operators.matches(/^draft-/i) })
-
-      expect(ability.isAllowed('update', 'Post', { slug: 'draft-post-123' })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { slug: 'DRAFT-POST-123' })).toBe(true)
-      expect(ability.isAllowed('update', 'Post', { slug: 'some-draft-123' })).toBe(false)
-    })
-  })
-
-  describe('Array operators', () => {
-    it('should handle includesAll operator', () => {
-      const ability = createAbility<never, 'Post'>()
-
-      ability.can('manage', 'Post', { tags: operators.includesAll(['important', 'urgent']) })
-
-      expect(ability.isAllowed('manage', 'Post', { tags: ['important', 'urgent', 'notice'] })).toBe(
-        true,
+      expect(checkConditionValue(mismatchCondition, { createdAt: new Date('2023-01-01') })).toBe(
+        false,
       )
-      expect(ability.isAllowed('manage', 'Post', { tags: ['important'] })).toBe(false)
     })
 
-    it('should handle includesAny operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $regex operator', () => {
+      const condition: Condition = {
+        name: { $regex: /^Test/ },
+      }
 
-      ability.can('manage', 'Post', { tags: operators.includesAny(['important', 'urgent']) })
+      expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
 
-      expect(ability.isAllowed('manage', 'Post', { tags: ['important'] })).toBe(true)
-      expect(ability.isAllowed('manage', 'Post', { tags: ['notice'] })).toBe(false)
+      const mismatchCondition: Condition = {
+        name: { $regex: /Article$/ },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    })
+
+    it('should handle $contains operator', () => {
+      const condition: Condition = {
+        name: { $contains: 'Post' },
+      }
+
+      expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+
+      const mismatchCondition: Condition = {
+        name: { $contains: 'Article' },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    })
+
+    it('should handle $startsWith operator', () => {
+      const condition: Condition = {
+        name: { $startsWith: 'Test' },
+      }
+
+      expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+
+      const mismatchCondition: Condition = {
+        name: { $startsWith: 'Draft' },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    })
+
+    it('should handle $endsWith operator', () => {
+      const condition: Condition = {
+        name: { $endsWith: 'Post' },
+      }
+
+      expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+
+      const mismatchCondition: Condition = {
+        name: { $endsWith: 'Article' },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
     })
   })
 
-  describe('Date operators', () => {
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+  describe('Combined Field Conditions', () => {
+    it('should return true for multiple field conditions when all match', () => {
+      const condition: Condition = {
+        status: 'published',
+        views: { $gt: 100 },
+      }
 
-    it('should handle before operator', () => {
-      const ability = createAbility<never, 'Post'>()
-
-      ability.can('read', 'Post', { publishDate: operators.before(tomorrow) })
-
-      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: yesterday })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: tomorrow })).toBe(false)
-
-      // Should work with string dates
-      ability.can('read', 'Post', { publishDate: operators.before('2023-12-31') })
-      expect(ability.isAllowed('read', 'Post', { publishDate: '2023-01-01' })).toBe(true)
+      expect(checkConditionValue(condition, { status: 'published', views: 150 })).toBe(true)
     })
 
-    it('should handle after operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should return false for multiple field conditions when one mismatches', () => {
+      const condition: Condition = {
+        status: 'published',
+        views: { $lt: 100 },
+      }
 
-      ability.can('read', 'Post', { publishDate: operators.after(yesterday) })
-
-      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: tomorrow })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: yesterday })).toBe(false)
+      expect(checkConditionValue(condition, { status: 'published', views: 150 })).toBe(false)
+      expect(checkConditionValue(condition, { status: 'draft', views: 50 })).toBe(false)
     })
 
-    it('should handle within operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle combined operators on a single field', () => {
+      const condition: Condition = {
+        views: { $gt: 100, $lt: 200 },
+      }
 
-      ability.can('read', 'Post', { publishDate: operators.within([yesterday, tomorrow]) })
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
 
-      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
+      const mismatchCondition: Condition = {
+        views: { $gt: 100, $lt: 150 },
+      }
+
+      expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
+    })
+  })
+
+  describe('Logical Operator Conditions', () => {
+    it('should handle $and operator where all sub-conditions match', () => {
+      const condition: Condition = {
+        $and: [{ status: 'published' }, { views: { $gt: 100 } }, { 'author.isActive': true }],
+      }
+
       expect(
-        ability.isAllowed('read', 'Post', {
-          publishDate: new Date(yesterday.getTime() - 24 * 60 * 60 * 1000),
+        checkConditionValue(condition, {
+          status: 'published',
+          views: 150,
+          author: { isActive: true },
+        }),
+      ).toBe(true)
+    })
+
+    it('should handle $and operator where one sub-condition mismatches', () => {
+      const condition: Condition = {
+        $and: [{ status: 'published' }, { views: { $lt: 100 } }, { 'author.isActive': true }],
+      }
+
+      expect(
+        checkConditionValue(condition, {
+          status: 'published',
+          views: 150,
+          author: { isActive: true },
         }),
       ).toBe(false)
     })
 
-    it('should handle pastDays operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle nested $and operators', () => {
+      const condition: Condition = {
+        $and: [
+          { status: 'published' },
+          {
+            $and: [{ views: { $gt: 100 } }, { 'author.username': { $eq: 'test_user' } }],
+          },
+        ],
+      }
 
-      ability.can('read', 'Post', { publishDate: operators.pastDays(7) })
-
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-
-      const weekAgo = new Date(today)
-      weekAgo.setDate(weekAgo.getDate() - 7)
-
-      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: yesterday })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: weekAgo })).toBe(true)
       expect(
-        ability.isAllowed('read', 'Post', {
-          publishDate: new Date(weekAgo.getTime() - 24 * 60 * 60 * 1000),
+        checkConditionValue(condition, {
+          status: 'published',
+          views: 150,
+          author: { username: 'test_user' },
+        }),
+      ).toBe(true)
+      expect(
+        checkConditionValue(condition, {
+          status: 'published',
+          views: 150,
+          author: { username: 'non_existing_user' },
         }),
       ).toBe(false)
     })
 
-    it('should handle futureDays operator', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $or operator where one sub-condition matches', () => {
+      const condition: Condition = {
+        $or: [{ status: 'draft' }, { views: { $gt: 100 } }, { 'author.id': 999 }],
+      }
 
-      ability.can('read', 'Post', { publishDate: operators.futureDays(7) })
-
-      const weekFromNow = new Date(today)
-      weekFromNow.setDate(weekFromNow.getDate() + 7)
-
-      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: weekFromNow })).toBe(true)
       expect(
-        ability.isAllowed('read', 'Post', {
-          publishDate: new Date(weekFromNow.getTime() + 24 * 60 * 60 * 1000),
+        checkConditionValue(condition, { status: 'published', views: 200, author: { id: 10 } }),
+      ).toBe(true)
+    })
+
+    it('should handle $or operator where all sub-conditions mismatch', () => {
+      const condition: Condition = {
+        $or: [{ status: 'draft' }, { views: { $lt: 100 } }, { 'author.id': 999 }],
+      }
+
+      expect(
+        checkConditionValue(condition, { status: 'published', views: 150, author: { id: 10 } }),
+      ).toBe(false)
+    })
+
+    it('should handle nested $or operators', () => {
+      const condition: Condition = {
+        $or: [
+          { status: 'draft' },
+          {
+            $or: [{ views: { $lt: 100 } }, { 'author.username': { $ne: 'non_existing_user' } }],
+          },
+        ],
+      }
+
+      expect(
+        checkConditionValue(condition, {
+          status: 'draft',
+          views: 150,
+          author: { username: 'user1' },
+        }),
+      ).toBe(true)
+      expect(
+        checkConditionValue(condition, {
+          status: 'published',
+          views: 150,
+          author: { username: 'non_existing_user' },
         }),
       ).toBe(false)
     })
 
-    it('should handle invalid dates', () => {
-      const ability = createAbility<never, 'Post'>()
+    it('should handle $not operator where the sub-condition matches', () => {
+      const condition: Condition = {
+        $not: { status: 'published' },
+      }
 
-      ability.can('read', 'Post', { publishDate: operators.before(tomorrow) })
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    })
 
-      expect(ability.isAllowed('read', 'Post', { publishDate: today })).toBe(true)
-      expect(ability.isAllowed('read', 'Post', { publishDate: 'invalid-date' })).toBe(false)
-      expect(ability.isAllowed('read', 'Post', { publishDate: null })).toBe(false)
-      expect(ability.isAllowed('read', 'Post', { publishDate: undefined })).toBe(false)
+    it('should handle $not operator where the sub-condition mismatches', () => {
+      const condition: Condition = {
+        $not: { status: 'draft' },
+      }
+
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    })
+
+    it('should handle $not operator with a field operator condition', () => {
+      const condition: Condition = {
+        $not: { views: { $gt: 200 } },
+      }
+
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+      expect(checkConditionValue(condition, { views: 300 })).toBe(false)
+    })
+  })
+
+  describe('Combined Logical and Field Conditions', () => {
+    it('should handle a mix of logical and field conditions', () => {
+      const condition: Condition = {
+        $and: [
+          { status: 'published' },
+          {
+            // This is an OR condition, wrapped in an implicit AND because it's an element in the `$and` array
+            $or: [
+              { views: { $gt: 200 } }, // mismatches (data.views is 150)
+              { 'author.id': 101 }, // matches (data.author.id is 101)
+            ],
+          },
+          { tags: { $in: ['tech'] } }, // matches (data.tags includes 'tech')
+        ],
+      }
+      const condition2: Condition = {
+        $and: [
+          { status: 'draft' }, // mismatches (data.status is 'published')
+          {
+            // This is an OR condition, wrapped in an implicit AND because it's an element in the `$and` array
+            $or: [
+              { views: { $gt: 200 } }, // mismatches (data.views is 150)
+              { 'author.id': 1 }, // mismatches (data.author.id is 101)
+            ],
+          },
+          { tags: { $in: ['tech'] } }, // matches (data.tags includes 'tech')
+        ],
+      }
+
+      expect(
+        checkConditionValue(condition, {
+          status: 'published',
+          views: 150,
+          author: { id: 101 },
+          tags: ['tech', 'idea'],
+        }),
+      ).toBe(true)
+      expect(
+        checkConditionValue(condition2, {
+          status: 'draft',
+          views: 25,
+          author: { id: 10 },
+          tags: ['draft', 'idea'],
+        }),
+      ).toBe(false)
+    })
+
+    it('should return correct result with different data object', () => {
+      const condition: Condition = {
+        status: 'draft',
+        'author.isActive': false,
+        isFeatured: true,
+      }
+
+      expect(
+        checkConditionValue(condition, {
+          status: 'draft',
+          author: { isActive: false },
+          isFeatured: true,
+        }),
+      ).toBe(true)
+    })
+  })
+
+  describe('Edge Cases', () => {
+    it('should return true for undefined condition', () => {
+      expect(checkConditionValue(undefined, {})).toBe(true)
+    })
+
+    it('should return true for an empty condition object', () => {
+      const condition: Condition = {} // Technically an empty AND equivalent
+
+      expect(checkConditionValue(condition, {})).toBe(true)
+    })
+
+    it('should return false for a condition with unknown operator and data does not match', () => {
+      const condition: Condition = {
+        // @ts-expect-error - This is to simulate an unknown operator
+        views: { $unknownOperator: 100 },
+      }
+
+      expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+      expect(consoleMock).toHaveBeenCalledOnce()
+      expect(consoleMock).toHaveBeenLastCalledWith('Unknown operator: $unknownOperator')
+    })
+
+    it('should return false for a field condition on a non-existent nested path', () => {
+      const condition: Condition = {
+        'nonExistent.field': 'someValue',
+      }
+
+      expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+    })
+
+    it('should return false for an operator condition on a non-existent nested path', () => {
+      const condition: Condition = {
+        'nonExistent.field': { $gt: 10 },
+      }
+
+      expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+    })
+
+    it('should return true for an equality condition on a non-existent nested path when the condition value is also undefined', () => {
+      const condition: Condition = {
+        'nonExistent.field': undefined,
+      }
+
+      expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    })
+
+    it('should return false for an equality condition on an existing field when the condition value is undefined', () => {
+      const condition: Condition = {
+        status: undefined,
+      }
+
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    })
+
+    it('should return false for a condition on a non-object field', () => {
+      const condition: Condition = {
+        'status.nested': 'value', // 'status' is a string, cannot have nested properties
+      }
+
+      expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    })
+
+    it('should handle null values correctly with $eq', () => {
+      const condition: Condition = { value: { $eq: null } }
+
+      expect(checkConditionValue(condition, { value: null })).toBe(true)
+
+      const conditionMismatch: Condition = { value: { $eq: 'some value' } }
+
+      expect(checkConditionValue(conditionMismatch, { value: null })).toBe(false)
+    })
+
+    it('should handle null values correctly with $ne', () => {
+      const condition: Condition = { value: { $ne: 'some value' } }
+
+      expect(checkConditionValue(condition, { value: null })).toBe(true)
+
+      const conditionMismatch: Condition = { value: { $ne: null } }
+
+      expect(checkConditionValue(conditionMismatch, { value: null })).toBe(false)
     })
   })
 })

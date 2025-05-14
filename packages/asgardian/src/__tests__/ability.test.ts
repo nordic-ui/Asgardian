@@ -38,7 +38,6 @@ describe('Ability', () => {
 
     ability.can('manage', 'all')
 
-    // Basic "all" resource tests
     expect(ability.isAllowed('create', 'Post')).toBe(true)
     expect(ability.isAllowed('delete', 'Post')).toBe(true)
     expect(ability.isAllowed('create', 'Comment')).toBe(true)
@@ -50,7 +49,6 @@ describe('Ability', () => {
     ability.can('manage', 'all')
     ability.cannot('delete', 'Comment') // this should take precedence over the previous rule since it's declared later
 
-    // Test permissions with exception
     expect(ability.isAllowed(['create', 'delete'], 'Post')).toBe(true)
 
     expect(ability.isAllowed('create', 'Comment')).toBe(true)
@@ -64,10 +62,8 @@ describe('Ability', () => {
     ability.cannot('delete', 'Post')
     ability.can('delete', 'all') // this should take precedence over the previous rules since `all` includes `Post`
 
-    // Test permissions with action exceptions
     expect(ability.isAllowed(['create', 'update', 'delete'], 'Post')).toBe(true)
 
-    // Inherited "all" permissions
     expect(ability.isAllowed('create', 'Comment')).toBe(false)
     expect(ability.isAllowed('delete', 'Comment')).toBe(true) // TODO: Figure out if this is the behaviour I want
   })
@@ -77,21 +73,18 @@ describe('Ability', () => {
 
     ability.can('read', 'Post', { published: true })
 
-    const publishedPost = { published: true }
-    const draftPost = { published: false }
-
-    expect(ability.isAllowed('read', 'Post', publishedPost)).toBe(true)
-    expect(ability.isAllowed('read', 'Post', draftPost)).toBe(false)
+    expect(ability.isAllowed('read', 'Post', { published: true })).toBe(true)
+    expect(ability.isAllowed('read', 'Post', { published: false })).toBe(false)
   })
 
   it('should handle multiple conditions', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('manage', 'Post', { authorId: 123, published: true })
+    ability.can('manage', 'Post', { $and: [{ authorId: 123 }, { published: true }] })
 
     expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBe(true)
     expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: false })).toBe(false)
-    expect(ability.isAllowed('manage', 'Post', { authorId: 456 })).toBe(false)
+    expect(ability.isAllowed('manage', 'Post', { authorId: 456, published: true })).toBe(false)
   })
 
   it('should handle cannot rules', () => {
