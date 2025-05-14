@@ -80,6 +80,7 @@ describe('Ability', () => {
   it('should handle multiple conditions', () => {
     const ability = createAbility<never, 'Post'>()
 
+    // Equivalent to: ability.can('manage', 'Post', { authorId: 123, published: true })
     ability.can('manage', 'Post', { $and: [{ authorId: 123 }, { published: true }] })
 
     expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBe(true)

@@ -18,17 +18,17 @@ export const checkConditionValue = (
   // If no conditions are defined, it's considered a match (empty condition means no restrictions)
   if (!condition) return true
 
-  // All sub-conditions must be true for $and
+  // All sub-conditions must be true for `$and`
   if ('$and' in condition && Array.isArray(condition.$and)) {
     return condition.$and.every((subCondition) => checkConditionValue(subCondition, data))
   }
 
-  // At least one sub-condition must be true for $or
+  // At least one sub-condition must be true for `$or`
   if ('$or' in condition && Array.isArray(condition.$or)) {
     return condition.$or.some((subCondition) => checkConditionValue(subCondition, data))
   }
 
-  // The sub-condition must be false for $not
+  // The sub-condition must be false for `$not`
   if ('$not' in condition && condition.$not !== undefined) {
     return !checkConditionValue(condition.$not, data)
   }
@@ -38,7 +38,6 @@ export const checkConditionValue = (
   // This part handles evaluating individual field conditions.
   // For a field condition object, all its conditions must be true (implicit AND).
   return Object.entries(condition).every(([field, fieldCondition]) => {
-    // Skip logical operators we've already processed
     if (['$and', '$or', '$not'].includes(field)) return true
 
     const fieldValue = getDeepValue(data, field)

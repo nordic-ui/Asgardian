@@ -1,4 +1,4 @@
-import { ConditionValue, Operators } from '../types'
+import { ConditionValue, Operator } from '../types'
 import { isRecord } from './utils'
 
 /**
@@ -10,7 +10,7 @@ import { isRecord } from './utils'
  */
 export const evaluateFieldOperators = (
   fieldValue: ConditionValue,
-  operators: Operators & Record<string, ConditionValue>,
+  operators: Operator & Record<string, ConditionValue>,
 ): boolean => {
   // All operators on a single field must be satisfied (implicit AND)
   return Object.keys(operators).every((operator) => {
@@ -18,12 +18,10 @@ export const evaluateFieldOperators = (
 
     switch (operator) {
       case '$eq': {
-        // Handle undefined and null equality explicitly
         return fieldValue === operatorValue
       }
 
       case '$ne': {
-        // Handle undefined and null inequality explicitly
         return fieldValue !== operatorValue
       }
 
@@ -32,7 +30,7 @@ export const evaluateFieldOperators = (
           console.warn('$in operator requires an array value.')
           return false
         }
-        // If fieldValue is an array, check for intersection
+
         if (Array.isArray(fieldValue)) {
           return fieldValue.some((item) => operatorValue.includes(item))
         }
@@ -45,7 +43,7 @@ export const evaluateFieldOperators = (
           console.warn('$nin operator requires an array value.')
           return false
         }
-        // If fieldValue is an array, check for no intersection
+
         if (Array.isArray(fieldValue)) {
           return !fieldValue.some((item) => operatorValue.includes(item))
         }
@@ -88,7 +86,7 @@ export const evaluateFieldOperators = (
       case '$between': {
         if (Array.isArray(operatorValue) && operatorValue.length === 2) {
           const [start, end] = operatorValue
-          // Basic numerical or date comparison. Extend for other types if needed.
+
           if (
             typeof fieldValue === 'number' &&
             typeof start === 'number' &&
@@ -96,7 +94,7 @@ export const evaluateFieldOperators = (
           ) {
             return fieldValue >= start && fieldValue <= end
           }
-          // Add date comparison if necessary, using getTime() for reliability
+
           if (fieldValue instanceof Date && start instanceof Date && end instanceof Date) {
             const fieldTime = fieldValue.getTime()
             const startTime = start.getTime()

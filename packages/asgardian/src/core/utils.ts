@@ -25,7 +25,7 @@ function hasKey(obj: unknown, key: string): obj is Record<string, unknown> {
  * Safely gets the value of a potentially nested property from an object.
  *
  * @param obj The object to retrieve the value from.
- * @param path The path to the property (e.g., "user.profile.id").
+ * @param path The path to the property (e.g., `"user.profile.id"`).
  * @returns The value of the property, or `undefined` if the path is invalid or the property doesn't exist.
  */
 export const getDeepValue = (obj: unknown, path: string): ConditionValue => {

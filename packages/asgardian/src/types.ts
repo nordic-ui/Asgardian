@@ -1,5 +1,5 @@
 // Potential helper type for data objects being checked against conditions
-// Define JsonObject as a record of string keys to any values
+// Define `JsonObject` as a record of string keys to any values
 type Primitive = string | number | boolean | Date | null | undefined
 export type JsonObject =
   | {
@@ -28,22 +28,22 @@ type BaseOperator = {
 
 /**
  * Represents logical operators for combining conditions.
- * These operators ($and, $or, etc.) take an array of `Condition`.
+ * These operators (`$and`, `$or`, etc.) take an array of `Condition`.
  * `$not` takes a single `Condition`.
  */
 type LogicalOperator = {
   $or?: Condition[]
   $and?: Condition[]
   $not?: Condition // $not takes a single condition object
-  // Consider if these are necessary or if $not combined with others is sufficient.
-  // $nand?: Condition // Could be represented as { $not: { $and: [...] } }
-  // $nor?: Condition[] // Could be represented as { $not: { $or: [...] } }
+  // Consider if these are necessary or if `$not` combined with others is sufficient.
+  // $nand?: Condition // Could be represented as `{ $not: { $and: [...] } }`
+  // $nor?: Condition[] // Could be represented as `{ $not: { $or: [...] } }`
   // $xor?: Condition[] // More complex, might need custom logic or representation
   // $xnor?: Condition[] // More complex, might need custom logic or representation
 }
 
-export type Operators = BaseOperator & LogicalOperator
-export type ValidOperator = keyof Operators
+export type Operator = BaseOperator & LogicalOperator
+export type ValidOperator = keyof Operator
 
 /**
  * Represents a condition for filtering resources.
@@ -82,15 +82,14 @@ export type ValidOperator = keyof Operators
  * These examples demonstrate how to construct conditions using the `Condition` type.
  */
 export type Condition =
-  | Operators
+  | Operator
   | ({
-      [key: string]: Primitive | Primitive[] | Operators | Condition | Condition[]
+      [key: string]: Primitive | Primitive[] | Operator | Condition | Condition[]
     } & {
       [K in `$${string}` as Exclude<K, ValidOperator>]: never
     })
 export type ConditionValue = unknown
 
-// Action and Resource types
 export type Action<ExtendedActions extends string = never> =
   | 'manage'
   | 'create'
@@ -100,15 +99,13 @@ export type Action<ExtendedActions extends string = never> =
   | ExtendedActions
 export type Resource<ExtendedResources extends string = never> = 'all' | ExtendedResources
 
-// Rule type - updated to use NewCondition
 export type Rule<ExtendedActions extends string, ExtendedResources extends string> = {
   action: Action<ExtendedActions> | Action<ExtendedActions>[]
   resource: Resource<ExtendedResources> | Resource<ExtendedResources>[]
   inverted?: boolean
-  conditions?: Condition // Use the new condition type
+  conditions?: Condition
 }
 
-// CreateAbility type - updated to use NewCondition
 export type CreateAbility<ExtendedActions extends string, ExtendedResources extends string> = {
   can: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
