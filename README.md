@@ -83,13 +83,11 @@ const ability = createAbility<CustomActions, Resources>()
 Use built-in operators for complex conditions:
 
 ```ts
-import { operators } from '@nordic-ui/asgardian'
-
 ability.can('read', 'Post', {
-  status: operators.or('published', 'archived'),
-  rating: operators.gte(4),
-  publishDate: operators.before(new Date()),
-  tags: operators.includesAny(['featured', 'trending'])
+  $or: [{ status: 'published' }, { status: 'draft' }],
+  rating: { $gte: 4 },
+  publishDate: { $lt: new Date() },
+  tags: { $in: ['featured', 'trending'] }
 })
 ```
 
