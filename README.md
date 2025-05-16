@@ -101,6 +101,7 @@ const defineAbilities = (user: User) => {
 
   if (user.role === 'admin') {
     ability.can('manage', 'all')
+    return ability; // Early return because admin has all permissions already
   }
 
   if (user.role === 'editor') {

@@ -14,6 +14,12 @@ describe('Ability', () => {
     const permissions = (user: User) => {
       const ability = createAbility<never, 'Post' | 'Comment'>()
 
+      if (user.roles.includes('admin')) {
+        ability.can('manage', 'all')
+        // Early return because admin has all permissions already
+        return ability
+      }
+
       if (user.roles.includes('viewer')) {
         ability.can('read', 'Post', { published: true })
         ability.can(['read', 'create'], 'Comment')
@@ -27,14 +33,11 @@ describe('Ability', () => {
         ability.can(['update', 'delete'], 'Comment', { authorId: user.id, postId: 1 })
       }
 
-      if (user.roles.includes('admin')) {
-        ability.can('manage', 'all')
-      }
-
       return ability
     }
 
     // Admin
+    expect(permissions(admin).isAllowed('manage', 'all')).toBe(true)
     expect(permissions(admin).isAllowed('manage', 'Post')).toBe(true)
     expect(permissions(admin).isAllowed('manage', 'Comment')).toBe(true)
 
