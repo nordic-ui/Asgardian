@@ -1,6 +1,6 @@
 import { describe, it, expectTypeOf, expect } from 'vitest'
 
-import { createAbility } from '../core/ability'
+import { createAbility } from '../'
 import type { Action, Resource } from '../types'
 
 describe('Ability', () => {

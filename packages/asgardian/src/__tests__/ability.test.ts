@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { createAbility } from '../core/ability'
+import { createAbility } from '../'
 
 describe('Ability', () => {
   it('should allow an action on a resource when permitted', () => {
@@ -138,5 +138,15 @@ describe('Ability', () => {
     expect(ability.isAllowed('create', 'Comment')).toBe(true)
     expect(ability.isAllowed('update', 'Comment')).toBe(false)
     expect(ability.isAllowed('delete', 'Comment')).toBe(false)
+  })
+
+  it('should handle not allowed actions', () => {
+    const ability = createAbility<never, 'Post'>()
+
+    ability.can('read', 'Post')
+    ability.cannot('delete', 'Post')
+
+    expect(ability.notAllowed('read', 'Post')).toBe(false)
+    expect(ability.notAllowed('delete', 'Post')).toBe(true)
   })
 })

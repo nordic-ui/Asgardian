@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { createAbility } from '../core/ability'
+import { createAbility } from '../'
 
 type User = { roles: string[]; id?: number }
 
