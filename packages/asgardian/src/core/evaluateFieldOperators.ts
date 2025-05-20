@@ -1,5 +1,5 @@
 import { ConditionValue, Operator } from '../types'
-import { isRecord } from './utils'
+import { isArray, isRecord } from './guards'
 
 /**
  * Evaluates the operators applied to a specific field value.
@@ -26,12 +26,12 @@ export const evaluateFieldOperators = (
       }
 
       case '$in': {
-        if (!Array.isArray(operatorValue)) {
+        if (!isArray(operatorValue)) {
           console.warn('$in operator requires an array value.')
           return false
         }
 
-        if (Array.isArray(fieldValue)) {
+        if (isArray(fieldValue)) {
           return fieldValue.some((item) => operatorValue.includes(item))
         }
 
@@ -39,12 +39,12 @@ export const evaluateFieldOperators = (
       }
 
       case '$nin': {
-        if (!Array.isArray(operatorValue)) {
+        if (!isArray(operatorValue)) {
           console.warn('$nin operator requires an array value.')
           return false
         }
 
-        if (Array.isArray(fieldValue)) {
+        if (isArray(fieldValue)) {
           return !fieldValue.some((item) => operatorValue.includes(item))
         }
 
@@ -84,7 +84,7 @@ export const evaluateFieldOperators = (
       }
 
       case '$between': {
-        if (Array.isArray(operatorValue) && operatorValue.length === 2) {
+        if (isArray(operatorValue) && operatorValue.length === 2) {
           const [start, end] = operatorValue
 
           if (
@@ -145,7 +145,7 @@ export const evaluateFieldOperators = (
         }
 
         // This is a nested field access, not an operator
-        if (fieldValue && typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+        if (fieldValue && typeof fieldValue === 'object' && !isArray(fieldValue)) {
           const typedFieldValue = isRecord(fieldValue) ? fieldValue : {}
           return typedFieldValue[operator] === operatorValue
         }

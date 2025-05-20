@@ -1,4 +1,5 @@
 import { ConditionValue } from '../types'
+import { isArray, isRecord } from './guards'
 
 /**
  * Normalizes a date input to a `Date` object. If the input is a string, it will be parsed into a `Date`.
@@ -56,12 +57,12 @@ export const getDeepValue = (obj: unknown, path: string): ConditionValue => {
  * @returns `true` if the arrays are equal, `false` otherwise.
  */
 export const compareArrays = (a: unknown[], b: unknown[]): boolean => {
-  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false
+  if (!isArray(a) || !isArray(b) || a.length !== b.length) return false
 
   return a.every((item, index) => {
     const otherItem = b[index]
 
-    if (Array.isArray(item) && Array.isArray(otherItem)) return compareArrays(item, otherItem)
+    if (isArray(item) && isArray(otherItem)) return compareArrays(item, otherItem)
     else if (isRecord(item) && isRecord(otherItem)) return compareObjects(item, otherItem)
 
     return item === otherItem
@@ -86,15 +87,9 @@ export const compareObjects = (a: Record<string, unknown>, b: Record<string, unk
     const item = a[key]
     const otherItem = b[key]
 
-    if (Array.isArray(item) && Array.isArray(otherItem)) return compareArrays(item, otherItem)
+    if (isArray(item) && isArray(otherItem)) return compareArrays(item, otherItem)
     else if (isRecord(item) && isRecord(otherItem)) return compareObjects(item, otherItem)
 
     return item === otherItem
   })
 }
-
-/**
- * Type guard that checks whether a given value is a non-null object (record).
- */
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)

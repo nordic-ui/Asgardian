@@ -1,6 +1,7 @@
 import { Condition } from '../types'
 import { evaluateFieldOperators } from './evaluateFieldOperators'
-import { compareArrays, compareObjects, getDeepValue, isRecord } from './utils'
+import { compareArrays, compareObjects, getDeepValue } from './utils'
+import { isArray, isRecord } from './guards'
 
 /**
  * Evaluates a condition against a given data object.
@@ -19,12 +20,12 @@ export const checkConditionValue = (
   if (!condition) return true
 
   // All sub-conditions must be true for `$and`
-  if ('$and' in condition && Array.isArray(condition.$and)) {
+  if ('$and' in condition && isArray(condition.$and)) {
     return condition.$and.every((subCondition) => checkConditionValue(subCondition, data))
   }
 
   // At least one sub-condition must be true for `$or`
-  if ('$or' in condition && Array.isArray(condition.$or)) {
+  if ('$or' in condition && isArray(condition.$or)) {
     return condition.$or.some((subCondition) => checkConditionValue(subCondition, data))
   }
 
@@ -43,7 +44,7 @@ export const checkConditionValue = (
     const fieldValue = getDeepValue(data, field)
 
     // If both fieldValue and fieldCondition are arrays, check for equality
-    if (Array.isArray(fieldValue) && Array.isArray(fieldCondition)) {
+    if (isArray(fieldValue) && isArray(fieldCondition)) {
       return compareArrays(fieldValue, fieldCondition)
     }
 
@@ -51,7 +52,7 @@ export const checkConditionValue = (
       return compareObjects(fieldValue, fieldCondition)
     }
 
-    if (fieldCondition === null || !isRecord(fieldCondition) || Array.isArray(fieldCondition)) {
+    if (fieldCondition === null || !isRecord(fieldCondition) || isArray(fieldCondition)) {
       return fieldValue === fieldCondition
     }
 

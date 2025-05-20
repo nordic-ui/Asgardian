@@ -1,5 +1,6 @@
 import type { Action, CreateAbility, Resource, Rule } from '../types'
 import { checkConditionValue } from './checkConditionValue'
+import { isArray } from './guards'
 
 /**
  * Creates a new ability instance with customizable actions and resources
@@ -20,8 +21,8 @@ export const createAbility = <
   const self = {} as CreateAbility<ExtendedActions, ExtendedResources>
 
   self.can = (action, resource, conditions) => {
-    const actions = Array.isArray(action) ? action : [action]
-    const resources = Array.isArray(resource) ? resource : [resource]
+    const actions = isArray(action) ? action : [action]
+    const resources = isArray(resource) ? resource : [resource]
 
     // Create a rule for each combination of action and resource
     for (const act of actions) {
@@ -38,8 +39,8 @@ export const createAbility = <
   }
 
   self.cannot = (action, resource, conditions) => {
-    const actions = Array.isArray(action) ? action : [action]
-    const resources = Array.isArray(resource) ? resource : [resource]
+    const actions = isArray(action) ? action : [action]
+    const resources = isArray(resource) ? resource : [resource]
 
     // Create a rule for each combination of action and resource
     for (const act of actions) {
@@ -57,8 +58,8 @@ export const createAbility = <
   }
 
   self.isAllowed = (action, resource, conditions) => {
-    const actionsToCheck = Array.isArray(action) ? action : [action]
-    const resourcesToCheck = Array.isArray(resource) ? resource : [resource]
+    const actionsToCheck = isArray(action) ? action : [action]
+    const resourcesToCheck = isArray(resource) ? resource : [resource]
 
     // Function to check if a rule matches the action and resource
     const ruleMatches = (
@@ -66,7 +67,7 @@ export const createAbility = <
       actions: Action<ExtendedActions>[],
       resources: Resource<ExtendedResources>[],
     ) => {
-      const ruleActions = Array.isArray(rule.action) ? rule.action : [rule.action]
+      const ruleActions = isArray(rule.action) ? rule.action : [rule.action]
       let resourceMatches = false
 
       resourceMatches = rule.resource === resource
