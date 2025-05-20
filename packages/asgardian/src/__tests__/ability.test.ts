@@ -17,6 +17,16 @@ describe('Ability', () => {
     expect(ability.isAllowed('read', 'Post')).toBe(false)
   })
 
+  it("should ensure 'manage' takes precedence over specific actions", () => {
+    const ability = createAbility<'publish', 'Post'>()
+
+    expect(ability.isAllowed('publish', 'Post')).toBe(false)
+
+    ability.can('manage', 'all')
+
+    expect(ability.isAllowed('publish', 'Post')).toBe(true)
+  })
+
   it('should handle multiple actions in a single rule', () => {
     const ability = createAbility<never, 'Post'>()
 
@@ -34,7 +44,7 @@ describe('Ability', () => {
   })
 
   it('should handle all resources', () => {
-    const ability = createAbility<never, 'Post' | 'Comment'>()
+    const ability = createAbility<'publish', 'Post' | 'Comment'>()
 
     ability.can('manage', 'all')
 

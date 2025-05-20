@@ -9,9 +9,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "test": "vitest run --passWithNoTests --reporter verbose --typecheck",
-    "test:watch": "vitest watch --passWithNoTests --reporter verbose --typecheck",
-    "test:coverage": "NODE_NO_WARNINGS=1 vitest run --passWithNoTests --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "NODE_NO_WARNINGS=1 vitest run --coverage",
     "lint": "eslint \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
     "diagnostics": "tsc --diagnostics",

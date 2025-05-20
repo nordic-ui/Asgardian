@@ -7,8 +7,14 @@ export default defineConfig({
   test: {
     dir: './',
     globals: true,
+    silent: true, // Disable console logs
+    passWithNoTests: true,
+    typecheck: {
+      tsconfig: './tsconfig.json',
+    },
     environment: 'node',
     mockReset: true,
+    reporters: ['verbose'],
     coverage: {
       reporter: ['text', 'json', 'html'],
     },
