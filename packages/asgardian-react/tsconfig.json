@@ -1,0 +1,8 @@
+{
+  "extends": "@nordic-ui/typescript-config/react-library.json",
+  "compilerOptions": {
+    "types": ["vitest", "@testing-library/jest-dom"]
+  },
+  "include": ["."],
+  "exclude": ["dist", "build", "node_modules"]
+}
