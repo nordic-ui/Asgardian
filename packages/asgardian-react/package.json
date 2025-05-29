@@ -35,10 +35,8 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules dist"
   },
-  "peerDependencies": {
-    "@nordic-ui/asgardian": "workspace:*"
-  },
   "devDependencies": {
+    "@nordic-ui/asgardian": "workspace:*",
     "@nordic-ui/eslint-config": "workspace:*",
     "@nordic-ui/typescript-config": "workspace:*",
     "@types/react": "^18.2.61",
