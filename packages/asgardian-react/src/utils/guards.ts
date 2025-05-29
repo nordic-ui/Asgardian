@@ -21,7 +21,7 @@ export const isAbilityGuard = <
     "can" in input.ability &&
     typeof input.ability.can === "function" &&
     "cannot" in input.ability &&
-    typeof input.ability.can === "function" &&
+    typeof input.ability.cannot === "function" &&
     "isAllowed" in input.ability &&
     typeof input.ability.isAllowed === "function" &&
     "notAllowed" in input.ability &&
