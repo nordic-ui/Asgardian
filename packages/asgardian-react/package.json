@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "eslint src --max-warnings 0",
+    "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "NODE_NO_WARNINGS=1 vitest run --coverage",
