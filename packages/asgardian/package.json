@@ -34,7 +34,15 @@
     "rbac"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "typesVersions": {
+      "*": {
+        "*": [
+          "dist/*.d.ts",
+          "dist/*/index.d.ts"
+        ]
+      }
+    }
   },
   "license": "MIT",
   "files": [
