@@ -28,6 +28,7 @@ describe("useAbility Hook and AbilityProvider", () => {
   const TestComponent: FC<{
     action: TestActions | TestActions[];
     resource: TestResources | TestResources[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any;
     checkType: "isAllowed" | "notAllowed";
   }> = ({ action, resource, data, checkType }) => {

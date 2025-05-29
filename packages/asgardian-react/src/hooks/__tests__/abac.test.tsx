@@ -332,10 +332,10 @@ describe("ABAC Ability Hook", () => {
 
     // Initial state: Editor (Level 3, Marketing) with Own Draft Post
     expect(ui.getByTestId("user-info")).toHaveTextContent(
-      /user\: editor \(Level 3, marketing\)/i
+      /user: editor \(Level 3, marketing\)/i
     );
     expect(ui.getByTestId("post-info")).toHaveTextContent(
-      /post\: draft \(public, marketing\)/i
+      /post: draft \(public, marketing\)/i
     );
 
     // Should be able to read and update own draft
@@ -352,7 +352,7 @@ describe("ABAC Ability Hook", () => {
     await userEvent.selectOptions(userSelect, "admin");
 
     expect(ui.getByTestId("user-info")).toHaveTextContent(
-      /user\: admin \(Level 10, it\)/i
+      /user: admin \(Level 10, it\)/i
     );
 
     // Admin should have all permissions
@@ -366,7 +366,7 @@ describe("ABAC Ability Hook", () => {
     // Switch to Manager (Level 6, Marketing)
     await userEvent.selectOptions(userSelect, "manager");
     expect(ui.getByTestId("user-info")).toHaveTextContent(
-      /user\: manager \(Level 6, marketing\)/i
+      /user: manager \(Level 6, marketing\)/i
     );
     expect(ui.getByTestId("manage-department")).toBeInTheDocument(); // Manager can manage department
     expect(ui.getByTestId("view-team")).toBeInTheDocument(); // Can view team members
@@ -375,7 +375,7 @@ describe("ABAC Ability Hook", () => {
     // Switch to Junior Editor (Level 2, Sales)
     await userEvent.selectOptions(userSelect, "junior-editor");
     expect(ui.getByTestId("user-info")).toHaveTextContent(
-      /user\: editor \(Level 2, sales\)/i
+      /user: editor \(Level 2, sales\)/i
     );
     expect(ui.queryByTestId("publish-post")).not.toBeInTheDocument(); // Level 2 cannot publish
     expect(ui.queryByTestId("approve-post")).not.toBeInTheDocument(); // Level 2 cannot approve
@@ -384,7 +384,7 @@ describe("ABAC Ability Hook", () => {
     const postSelect = ui.getByLabelText("Selected Post:");
     await userEvent.selectOptions(postSelect, "confidential");
     expect(ui.getByTestId("post-info")).toHaveTextContent(
-      /post\: published \(confidential, finance\)/i
+      /post: published \(confidential, finance\)/i
     );
     expect(ui.queryByTestId("read-post")).not.toBeInTheDocument(); // Cannot read confidential from other department
 
@@ -392,7 +392,7 @@ describe("ABAC Ability Hook", () => {
     await userEvent.selectOptions(userSelect, "senior-editor");
     await userEvent.selectOptions(postSelect, "own-draft");
     expect(ui.getByTestId("user-info")).toHaveTextContent(
-      /user\: editor \(Level 4, marketing\)/i
+      /user: editor \(Level 4, marketing\)/i
     );
     expect(ui.getByTestId("delete-post")).toBeInTheDocument(); // Has DELETE_ANY_POST permission
     expect(ui.getByTestId("approve-post")).toBeInTheDocument(); // Level 4 can approve
@@ -400,7 +400,7 @@ describe("ABAC Ability Hook", () => {
     // Test department-specific permissions
     await userEvent.selectOptions(postSelect, "dept-review");
     expect(ui.getByTestId("post-info")).toHaveTextContent(
-      /post\: review \(public, marketing\)/i
+      /post: review \(public, marketing\)/i
     );
     expect(ui.getByTestId("read-post")).toBeInTheDocument(); // Can read department post
     expect(ui.getByTestId("publish-post")).toBeInTheDocument(); // Can publish department post in review
