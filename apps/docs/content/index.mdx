@@ -86,6 +86,48 @@ const canDeletePostOtherUser = userAbility.isAllowed(['create', 'update', 'delet
 console.log(canDeletePostOtherUser); // false
 ```
 
+## React Usage
+
+Asgardian now has a React library available which makes it simple and easy to get started with using your ability on the frontend.
+
+### Installation
+
+```sh npm2yarn
+npm i @nordic-ui/asgardian-react
+```
+
+### Example
+
+```tsx
+import { createAbility } from '@nordic-ui/asgardian'
+import { AbilityProvider } from '@nordic-ui/asgardian-react'
+
+const ability = createAbility()
+  .can('read', 'Article')
+  .can('write', 'Comment')
+  .can('manage', 'Profile')
+
+const App = () => {
+  return (
+    <AbilityProvider ability={ability}>
+      <TypedPostActions />
+    </AbilityProvider>
+  )
+}
+
+const TypedPostActions = () => {
+  const canWrite = useCan<Actions, Resources>('write', 'Article')
+  const canDelete = useCan<Actions, Resources>('delete', 'Comment')
+  
+  return (
+    <div>
+      {canWrite && <button>Write Article</button>}
+      {canDelete && <button>Delete Comment</button>}
+    </div>
+  )
+}
+```
+
 ## Next Steps
 
 Now that you have a basic understanding of Asgardian, you can dive deeper into the documentation to learn about advanced features and best practices.

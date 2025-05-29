@@ -1,3 +1,5 @@
+import type { Condition } from "@nordic-ui/asgardian";
+
 import { useAbilityContext } from "../context";
 
 export const useCannot = <
@@ -5,9 +7,10 @@ export const useCannot = <
   TResources extends string = string,
 >(
   action: TActions,
-  resource: TResources
+  resource: TResources,
+  conditions?: Condition
 ): boolean => {
-  const ability = useAbilityContext<TActions, TResources>();
+  const { notAllowed } = useAbilityContext<TActions, TResources>();
 
-  return ability.notAllowed(action, resource);
+  return notAllowed(action, resource, conditions);
 };

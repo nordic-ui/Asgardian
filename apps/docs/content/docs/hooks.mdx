@@ -1,0 +1,441 @@
+---
+title: React Hooks
+---
+
+# React Hooks
+
+The `@nordic-ui/asgardian-react` package provides React hooks that make it easy to work with permissions in your React applications. These hooks integrate seamlessly with the Asgardian ability system and provide a convenient way to check permissions in your components.
+
+## Installation
+
+```sh npm2yarn
+npm install @nordic-ui/asgardian-react
+```
+
+## Setup
+
+First, you need to set up the `AbilityProvider` at the root of your application:
+
+```tsx
+import { createAbility } from '@nordic-ui/asgardian'
+import { AbilityProvider } from '@nordic-ui/asgardian-react'
+
+// Create your ability instance
+const ability = createAbility()
+  .can('read', 'Post')
+  .can('write', 'Comment')
+  .can('manage', 'Profile')
+
+const App = () => {
+  return (
+    <AbilityProvider ability={ability}>
+      <YourApp />
+    </AbilityProvider>
+  )
+}
+```
+
+## Available Hooks
+
+### `useAbility`
+
+The core hook that provides access to the ability instance and its methods.
+
+```tsx
+import { useAbility } from '@nordic-ui/asgardian-react'
+
+const MyComponent = () => {
+  const { isAllowed, notAllowed } = useAbility()
+  
+  if (isAllowed('read', 'Post')) {
+    return <div>You can read posts!</div>
+  }
+  
+  if (notAllowed('write', 'Post')) {
+    return <div>You cannot write posts</div>
+  }
+  
+  return null
+}
+```
+
+#### Type Safety
+
+You can provide type parameters for better TypeScript support:
+
+```ts
+type Actions = 'read' | 'write' | 'delete' | 'manage'
+type Resources = 'Post' | 'Comment' | 'User'
+
+const TypedComponent = () => {
+  const { isAllowed, notAllowed } = useAbility<Actions, Resources>()
+  
+  // TypeScript will enforce correct action and resource types
+  const canRead = isAllowed('read', 'Post') // ✅ Valid
+  const canEdit = isAllowed('edit', 'Post') // ❌ TypeScript error
+}
+```
+
+#### Working with Conditions
+
+```tsx
+type PostComponentProps = {
+  post: { id: number, authorId: number }
+}
+
+const PostComponent: FC<PostComponentProps> = ({ post }) => {
+  const { isAllowed } = useAbility()
+  
+  const canEdit = isAllowed('edit', 'Post', { authorId: post.authorId })
+  const canDelete = isAllowed('delete', 'Post', post)
+  
+  return (
+    <div>
+      <h1>{post.title}</h1>
+      {canEdit && <button>Edit</button>}
+      {canDelete && <button>Delete</button>}
+    </div>
+  )
+}
+```
+
+#### Multiple Actions or Resources
+
+```tsx
+const Dashboard = () => {
+  const { isAllowed } = useAbility()
+  
+  // Check multiple actions (returns true if ANY action is allowed)
+  const canModify = isAllowed(['edit', 'delete'], 'Post')
+  
+  // Check multiple resources (returns true if action is allowed on ANY resource)
+  const canRead = isAllowed('read', ['Post', 'Comment'])
+  
+  // Check multiple actions on multiple resources
+  const hasAnyAccess = isAllowed(['read', 'write'], ['Post', 'Comment'])
+  
+  return (
+    <div>
+      {canModify && <button>Modify Content</button>}
+      {canRead && <div>Content available</div>}
+    </div>
+  )
+}
+```
+
+### `useCan`
+
+A convenient hook that returns a boolean indicating whether a specific action is allowed on a resource.
+
+```tsx
+import { useCan } from '@nordic-ui/asgardian-react'
+
+type PostActionsProps = { post: Post }
+
+const PostActions: FC<PostActionsProps> = ({ post }) => {
+  const canEdit = useCan('edit', 'Post', { authorId: post.authorId })
+  const canDelete = useCan('delete', 'Post', post)
+  const canPublish = useCan('publish', 'Post')
+  
+  return (
+    <div>
+      {canEdit && <button>Edit</button>}
+      {canDelete && <button>Delete</button>}
+      {canPublish && <button>Publish</button>}
+    </div>
+  )
+}
+```
+
+#### With Type Safety
+
+```tsx
+type Actions = 'read' | 'write' | 'delete' | 'publish'
+type Resources = 'Article' | 'Comment' | 'User'
+
+const TypedPostActions = () => {
+  const canWrite = useCan<Actions, Resources>('write', 'Article')
+  const canDelete = useCan<Actions, Resources>('delete', 'Comment')
+  
+  return (
+    <div>
+      {canWrite && <button>Write Article</button>}
+      {canDelete && <button>Delete Comment</button>}
+    </div>
+  )
+}
+```
+
+### `useCannot`
+
+The inverse of `useCan` - returns `true` when an action is not allowed.
+
+```tsx
+import { useCannot } from '@nordic-ui/asgardian-react'
+
+const RestrictedContent = () => {
+  const cannotView = useCannot('view', 'PremiumContent')
+  const cannotEdit = useCannot('edit', 'Post')
+  
+  if (cannotView) {
+    return <div>Upgrade to premium to view this content</div>
+  }
+  
+  return (
+    <div>
+      <h1>Premium Content</h1>
+      {cannotEdit && (
+        <p>You don't have permission to edit this post</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Practical Examples
+
+### Conditional Rendering
+
+```tsx
+type BlogPostProps = { post: Post }
+
+const BlogPost: FC<BlogPostProps> = ({ post }) => {
+  const canEdit = useCan('edit', 'Post', { authorId: post.authorId })
+  const canDelete = useCan('delete', 'Post', { authorId: post.authorId })
+  const cannotComment = useCannot('create', 'Comment')
+  
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+      
+      {/* Action buttons */}
+      <div className="actions">
+        {canEdit && (
+          <button onClick={() => editPost(post.id)}>
+            Edit
+          </button>
+        )}
+        {canDelete && (
+          <button onClick={() => deletePost(post.id)}>
+            Delete
+          </button>
+        )}
+      </div>
+      
+      {/* Comments section */}
+      {cannotComment ? (
+        <p>Sign in to leave a comment</p>
+      ) : (
+        <CommentForm postId={post.id} />
+      )}
+    </article>
+  )
+}
+```
+
+### Navigation Guards
+
+```tsx
+const Navigation = () => {
+  const canViewAdmin = useCan('access', 'AdminPanel')
+  const canManageUsers = useCan('manage', 'User')
+  const canViewReports = useCan('view', 'Reports')
+  
+  return (
+    <nav>
+      <Link href="/">Home</Link>
+      <Link href="/posts">Posts</Link>
+      
+      {canViewAdmin && (
+        <div className="admin-section">
+          <Link href="/admin">Admin</Link>
+          {canManageUsers && <Link href="/admin/users">Users</Link>}
+          {canViewReports && <Link href="/admin/reports">Reports</Link>}
+        </div>
+      )}
+    </nav>
+  )
+}
+```
+
+### Form Permissions
+
+```tsx
+type UserFormProps = { user: User }
+
+const UserForm: FC<UserFormProps> = ({ user }) => {
+  const { isAllowed } = useAbility()
+  const canEditProfile = useCan('edit', 'Profile', { userId: user.id })
+  const canChangeRole = useCan('change', 'UserRole')
+  const cannotDeactivate = useCannot('deactivate', 'User', { userId: user.id })
+  
+  return (
+    <form>
+      <input 
+        name="name" 
+        defaultValue={user.name}
+        disabled={!canEditProfile}
+      />
+      
+      <input 
+        name="email" 
+        defaultValue={user.email}
+        disabled={!canEditProfile}
+      />
+      
+      {canChangeRole && (
+        <select name="role" defaultValue={user.role}>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      )}
+      
+      {cannotDeactivate && (
+        <p className="warning">
+          You cannot deactivate this user
+        </p>
+      )}
+      
+      <button 
+        type="submit" 
+        disabled={!isAllowed(['edit', 'manage'], 'User')}
+      >
+        Save Changes
+      </button>
+    </form>
+  )
+}
+```
+
+## Dynamic Ability Updates
+
+The hooks automatically respond to changes in the ability instance:
+
+```tsx
+const App = () => {
+  const [user, setUser] = useState(null)
+  const [ability, setAbility] = useState(() => createAbility())
+  
+  useEffect(() => {
+    if (user) {
+      // Update ability when user changes
+      const newAbility = createUserAbility(user)
+      setAbility(newAbility)
+    }
+  }, [user])
+  
+  return (
+    <AbilityProvider ability={ability}>
+      <Dashboard />
+    </AbilityProvider>
+  )
+}
+
+const Dashboard = () => {
+  const canCreatePost = useCan('create', 'Post')
+  
+  // This will automatically update when the ability changes
+  return (
+    <div>
+      {canCreatePost && <button>Create Post</button>}
+    </div>
+  )
+}
+```
+
+## Error Handling
+
+The hooks will throw errors if used outside of an `AbilityProvider`:
+
+```tsx
+const ComponentWithoutProvider = () => {
+  // ❌ This will throw an error
+  const canRead = useCan('read', 'Post')
+  
+  return <div>This won't work</div>
+}
+
+// Error: "useAbilityContext must be used within an AbilityProvider"
+```
+
+Make sure to wrap your app with `AbilityProvider`:
+
+```tsx
+// ✅ Correct usage
+const App = () => {
+  const ability = createAbility()
+  
+  return (
+    <AbilityProvider ability={ability}>
+      <ComponentWithProvider />
+    </AbilityProvider>
+  )
+}
+```
+
+## Best Practices
+
+1. Use Type Parameters  
+   Always provide type parameters for better TypeScript support:
+    ```tsx
+    type Actions = 'read' | 'write' | 'delete'
+    type Resources = 'Post' | 'Comment'
+
+    // ✅ Good
+    const canWrite = useCan<Actions, Resources>('write', 'Post')
+
+    // ❌ Less ideal - no type safety
+    const canWrite = useCan('write', 'Post')
+    ```
+2. Prefer Specific Hooks  
+  Use `useCan` and `useCannot` for simple boolean checks:
+    ```tsx
+    // ✅ Good - clear and concise
+    const canEdit = useCan('edit', 'Post')
+
+    // ❌ More verbose
+    const { isAllowed } = useAbility()
+    const canEdit = isAllowed('edit', 'Post')
+    ```
+3. Extract Permission Logic  
+   For complex permission logic, consider extracting it into custom hooks:
+    ```tsx
+    const usePostPermissions = (post: Post) => {
+      const canRead = useCan('read', 'Post', post)
+      const canEdit = useCan('edit', 'Post', { authorId: post.authorId })
+      const canDelete = useCan('delete', 'Post', { authorId: post.authorId })
+      const canPublish = useCan('publish', 'Post')
+      
+      return {
+        canRead,
+        canEdit,
+        canDelete,
+        canPublish,
+        canModify: canEdit || canDelete
+      }
+    }
+
+    type PostCardProps = { post: Post }
+
+    // Usage
+    const PostCard: FC<PostCardProps> = ({ post }) => {
+      const { canEdit, canDelete, canPublish } = usePostPermissions(post)
+      
+      return (
+        <div>
+          {/* Use the extracted permissions */}
+        </div>
+      )
+    }
+   ```
+
+## Summary
+
+The `@nordic-ui/asgardian-react` hooks provide a powerful and type-safe way to integrate permissions into your React applications:
+
+- `useAbility`: Core hook providing access to `isAllowed` and `notAllowed` methods
+- `useCan`: Simple boolean check for whether an action is allowed
+- `useCannot`: Simple boolean check for whether an action is not allowed
+
+These hooks work seamlessly with the Asgardian permission system and automatically update when abilities change, making them perfect for building dynamic, permission-aware user interfaces.
