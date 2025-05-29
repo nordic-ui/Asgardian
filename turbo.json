@@ -8,13 +8,14 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "test": {
+      "outputs": ["coverage/**"],
       "dependsOn": ["^test"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^build", "^lint"]
     },
     "type-check": {
-      "dependsOn": ["^type-check"]
+      "dependsOn": ["^build", "^type-check"]
     },
     "dev": {
       "cache": false,
