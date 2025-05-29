@@ -136,6 +136,7 @@ describe("assertType", () => {
     it("should call the type guard function even when it fails", () => {
       const mockGuard = vi.fn(() => false);
 
+      // @ts-expect-error
       expect(() => assertType("test", mockGuard)).toThrowError();
       expect(mockGuard).toHaveBeenCalledWith("test");
       expect(mockGuard).toHaveBeenCalledOnce();

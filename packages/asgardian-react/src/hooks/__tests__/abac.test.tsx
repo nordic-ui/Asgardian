@@ -277,23 +277,28 @@ describe("ABAC Ability Hook", () => {
           </div>
 
           {/* Basic post actions */}
+          {/* @ts-expect-error */}
           {isAllowed("read", "Post", selectedPost) && (
             <button data-testid="read-post">Read Post</button>
           )}
 
+          {/* @ts-expect-error */}
           {isAllowed("update", "Post", selectedPost) && (
             <button data-testid="update-post">Update Post</button>
           )}
 
+          {/* @ts-expect-error */}
           {isAllowed("delete", "Post", selectedPost) && (
             <button data-testid="delete-post">Delete Post</button>
           )}
 
           {/* Publishing permissions */}
+          {/* @ts-expect-error */}
           {isAllowed("publish", "Post", selectedPost) && (
             <button data-testid="publish-post">Publish Post</button>
           )}
 
+          {/* @ts-expect-error */}
           {isAllowed("approve", "Post", selectedPost) && (
             <button data-testid="approve-post">Approve Post</button>
           )}
@@ -306,6 +311,7 @@ describe("ABAC Ability Hook", () => {
           )}
 
           {/* User management */}
+          {/* @ts-expect-error */}
           {isAllowed("update", "User", currentUser) && (
             <button data-testid="update-self">Update Profile</button>
           )}
