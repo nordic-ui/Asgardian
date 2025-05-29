@@ -84,6 +84,9 @@ importers:
 
   packages/asgardian-react:
     dependencies:
+      '@nordic-ui/asgardian':
+        specifier: workspace:*
+        version: link:../asgardian
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.6.3
@@ -100,9 +103,6 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
     devDependencies:
-      '@nordic-ui/asgardian':
-        specifier: workspace:*
-        version: link:../asgardian
       '@nordic-ui/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config

@@ -18,11 +18,14 @@
     "access control",
     "react"
   ],
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    "./button": {
-      "types": "./src/button.tsx",
-      "import": "./dist/button.mjs",
-      "require": "./dist/button.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
     }
   },
   "scripts": {
@@ -35,8 +38,10 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules dist"
   },
+  "peerDependencies": {
+    "@nordic-ui/asgardian": "workspace:*"
+  },
   "devDependencies": {
-    "@nordic-ui/asgardian": "workspace:*",
     "@nordic-ui/eslint-config": "workspace:*",
     "@nordic-ui/typescript-config": "workspace:*",
     "@types/react": "^18.2.61",
