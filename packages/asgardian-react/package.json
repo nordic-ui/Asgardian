@@ -38,10 +38,8 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules dist"
   },
-  "peerDependencies": {
-    "@nordic-ui/asgardian": "workspace:*"
-  },
   "devDependencies": {
+    "@nordic-ui/asgardian": "workspace:*",
     "@nordic-ui/eslint-config": "workspace:*",
     "@nordic-ui/typescript-config": "workspace:*",
     "@types/react": "^18.2.61",
@@ -51,7 +49,7 @@
     "eslint": "^9.15.0",
     "jsdom": "^26.1.0",
     "tsup": "^8.0.2",
-    "typescript": "5.5.4",
+    "typescript": "5.8.3",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^3.1.4"
   },
@@ -63,14 +61,6 @@
     "react-dom": "^18.2.0"
   },
   "publishConfig": {
-    "access": "public",
-    "typesVersions": {
-      "*": {
-        "*": [
-          "dist/*.d.ts",
-          "dist/*/index.d.ts"
-        ]
-      }
-    }
+    "access": "public"
   }
 }
