@@ -1,6 +1,6 @@
 {
   "name": "@nordic-ui/asgardian-react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A simple authorization library",
   "author": "Kevin Østerkilde <kevin@oesterkilde.dk>",
   "sideEffects": false,
