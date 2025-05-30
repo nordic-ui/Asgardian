@@ -6,6 +6,7 @@
   "exports": {
     "./base": "./base.js",
     "./next-js": "./next.js",
+    "./react": "./react.js",
     "./react-internal": "./react-internal.js"
   },
   "devDependencies": {
@@ -18,7 +19,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-turbo": "^2.3.0",
     "globals": "^15.12.0",
-    "typescript": "5.5.4",
+    "typescript": "5.8.3",
     "typescript-eslint": "^8.15.0"
   }
 }

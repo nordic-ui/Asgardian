@@ -1,0 +1,66 @@
+{
+  "name": "@nordic-ui/asgardian-react",
+  "version": "0.0.0",
+  "description": "A simple authorization library",
+  "author": "Kevin Østerkilde <kevin@oesterkilde.dk>",
+  "sideEffects": false,
+  "license": "MIT",
+  "keywords": [
+    "asgardian",
+    "authorization",
+    "auth",
+    "authz",
+    "ability",
+    "acl",
+    "rbac",
+    "abac",
+    "permissions",
+    "access control",
+    "react"
+  ],
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "NODE_NO_WARNINGS=1 vitest run --coverage",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules dist"
+  },
+  "devDependencies": {
+    "@nordic-ui/asgardian": "workspace:*",
+    "@nordic-ui/eslint-config": "workspace:*",
+    "@nordic-ui/typescript-config": "workspace:*",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.4.1",
+    "@vitest/coverage-v8": "3.1.2",
+    "eslint": "^9.15.0",
+    "jsdom": "^26.1.0",
+    "tsup": "^8.0.2",
+    "typescript": "5.8.3",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^3.1.4"
+  },
+  "dependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
