@@ -159,4 +159,50 @@ describe('Ability', () => {
     expect(ability.notAllowed('read', 'Post')).toBe(false)
     expect(ability.notAllowed('delete', 'Post')).toBe(true)
   })
+
+  it('should handle destructuring of ability', () => {
+    const { can, cannot, isAllowed, notAllowed } = createAbility<never, 'Post'>()
+    can('read', 'Post')
+    cannot('delete', 'Post')
+
+    expect(isAllowed('read', 'Post')).toBe(true)
+    expect(isAllowed('delete', 'Post')).toBe(false)
+    expect(notAllowed('read', 'Post')).toBe(false)
+    expect(notAllowed('delete', 'Post')).toBe(true)
+  })
+
+  it('should handle reasons', () => {
+    const ability = createAbility<'publish', 'Post'>()
+
+    ability.can('read', 'Post')
+
+    ability
+      .cannot('update', 'Post', { userId: { $ne: 1 } })
+      .reason('User must be the owner of the post')
+      .can('update', 'Post', { userId: 1 })
+
+    ability
+      .cannot('publish', 'Post', { status: 'draft' })
+      .reason('Post must not be in draft status')
+      .can('publish', 'Post', { status: 'published' })
+
+    ability.cannot('delete', 'Post').reason('Deletion not allowed')
+
+    expect(ability.isAllowed('read', 'Post')).toBe(true)
+
+    expect(ability.isAllowed('update', 'Post', { userId: 1 })).toBe(true)
+    expect(ability.isAllowed('update', 'Post', { userId: 2 })).toBe(false)
+    expect(ability.getReason('update', 'Post', { userId: 2 })).toBe(
+      'User must be the owner of the post',
+    )
+
+    expect(ability.isAllowed('publish', 'Post', { status: 'published' })).toBe(true)
+    expect(ability.isAllowed('publish', 'Post', { status: 'draft' })).toBe(false)
+    expect(ability.getReason('publish', 'Post', { status: 'draft' })).toBe(
+      'Post must not be in draft status',
+    )
+
+    expect(ability.isAllowed('delete', 'Post')).toBe(false)
+    expect(ability.getReason('delete', 'Post')).toBe('Deletion not allowed')
+  })
 })
