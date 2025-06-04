@@ -37,6 +37,8 @@ export const createAbility = <
     const actions = isArray(action) ? action : [action]
     const resources = isArray(resource) ? resource : [resource]
 
+    const newRuleIndices: number[] = []
+
     // Create a rule for each combination of action and resource
     for (const act of actions) {
       for (const res of resources) {
@@ -45,10 +47,11 @@ export const createAbility = <
           resource: res,
           conditions,
         })
+        newRuleIndices.push(rules.length - 1)
       }
     }
 
-    return self
+    return Object.assign(self, _createReasonMethod(newRuleIndices))
   }
 
   self.cannot = (action, resource, conditions) => {

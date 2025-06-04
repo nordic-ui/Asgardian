@@ -112,7 +112,9 @@ export type CreateAbility<ExtendedActions extends string, ExtendedResources exte
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
     conditions?: Condition,
-  ) => CreateAbility<ExtendedActions, ExtendedResources>
+  ) => CreateAbility<ExtendedActions, ExtendedResources> & {
+    reason: (message: string) => CreateAbility<ExtendedActions, ExtendedResources>
+  }
 
   cannot: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],

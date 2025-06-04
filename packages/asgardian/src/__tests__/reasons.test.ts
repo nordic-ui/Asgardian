@@ -4,14 +4,16 @@ import { ForbiddenError } from '../core/errors'
 import { createAbility } from '../'
 
 describe('Ability Reasons', () => {
-  it('should set and retrieve reasons for cannot rules', () => {
+  it('should set and retrieve reasons', () => {
     const ability = createAbility<'publish', 'Post'>()
 
-    ability.can('read', 'Post')
-    ability.can('update', 'Post', { userId: 1 })
+    ability.can('read', 'Post').reason('Can read all posts')
+    ability.can('update', 'Post', { userId: 1 }).reason('Can only update own posts')
     ability.cannot('publish', 'Post', { status: 'draft' }).reason('Cannot publish draft posts')
     ability.cannot('delete', 'Post').reason('Deletion not allowed')
 
+    expect(ability.getReason('read', 'Post')).toBe('Can read all posts')
+    expect(ability.getReason('update', 'Post', { userId: 1 })).toBe('Can only update own posts')
     expect(ability.getReason('publish', 'Post', { status: 'draft' })).toBe(
       'Cannot publish draft posts',
     )
@@ -29,13 +31,15 @@ describe('Ability Reasons', () => {
     expect(ability.getReason('update', 'Post')).toBeUndefined()
   })
 
-  it('should return the most recent matching cannot rule reason', () => {
+  it('should return the most recent matching rule reason', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('read', 'Post')
+    ability.can('read', 'Post').reason('First read reason')
+    ability.can('read', 'Post').reason('Second read reason') // Overrides the first reason
     ability.cannot('read', 'Post', { private: true }).reason('First reason')
     ability.cannot('read', 'Post', { archived: true }).reason('Second reason')
 
+    expect(ability.getReason('read', 'Post')).toBe('Second read reason')
     expect(ability.getReason('read', 'Post', { private: true, archived: false })).toBe(
       'First reason',
     )
@@ -47,18 +51,18 @@ describe('Ability Reasons', () => {
   it('should handle reasons with conditions that do not match', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('update', 'Post')
+    ability.can('update', 'Post').reason('Can update all posts')
     ability.cannot('update', 'Post', { locked: true }).reason('Post is locked')
 
-    expect(ability.getReason('update', 'Post', { locked: false })).toBeUndefined()
+    expect(ability.getReason('update', 'Post', { locked: false })).toBe('Can update all posts')
     expect(ability.getReason('update', 'Post', { locked: true })).toBe('Post is locked')
-    expect(ability.getReason('update', 'Post', { userId: 2 })).toBeUndefined()
+    expect(ability.getReason('update', 'Post', { userId: 2 })).toBe('Can update all posts')
   })
 
   it('should throw ForbiddenError when access is denied', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('read', 'Post')
+    ability.can('read', 'Post').reason('Read access granted')
     ability.cannot('delete', 'Post').reason('Deletion not allowed')
 
     expect(() => ability.throwIfNotAllowed('read', 'Post')).not.toThrowError()
@@ -68,25 +72,25 @@ describe('Ability Reasons', () => {
   })
 
   it('should throw ForbiddenError with default message when no reason is provided', () => {
-    const ability = createAbility<'write', 'Post'>()
+    const ability = createAbility<never, 'Post'>()
 
-    ability.cannot('write', 'Post')
+    ability.cannot('update', 'Post')
 
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError(ForbiddenError)
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError('Access denied')
+    expect(() => ability.throwIfNotAllowed('update', 'Post')).toThrowError(ForbiddenError)
+    expect(() => ability.throwIfNotAllowed('update', 'Post')).toThrowError('Access denied')
   })
 
   it('should throw ForbiddenError with default message when action is not explicitly allowed', () => {
-    const ability = createAbility<'write', 'Post'>()
+    const ability = createAbility<never, 'Post'>()
 
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError(ForbiddenError)
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError('Access denied')
+    expect(() => ability.throwIfNotAllowed('update', 'Post')).toThrowError(ForbiddenError)
+    expect(() => ability.throwIfNotAllowed('update', 'Post')).toThrowError('Access denied')
   })
 
   it('should throw ForbiddenError with reason based on conditions', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('update', 'Post')
+    ability.can('update', 'Post').reason('Can update all posts')
     ability.cannot('update', 'Post', { locked: true }).reason('Post is locked for editing')
 
     expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: false })).not.toThrowError()
@@ -119,35 +123,38 @@ describe('Ability Reasons', () => {
   it('should work with chained ability definitions and reasons on cannot rules', () => {
     const ability = createAbility<never, 'Post' | 'Comment'>()
       .can('read', 'Post')
+      .reason('Can read all posts')
       .can('update', 'Post', { authorId: 123 })
+      .reason('Can update own posts')
       .cannot('delete', 'Post')
       .reason('Deletion forbidden')
       .can('create', 'Comment')
+      .reason('Can create comments')
       .cannot('update', 'Comment', { locked: true })
       .reason('Comment is locked')
 
     expect(ability.getReason('delete', 'Post')).toBe('Deletion forbidden')
     expect(ability.getReason('update', 'Comment', { locked: true })).toBe('Comment is locked')
-    expect(ability.getReason('read', 'Post')).toBeUndefined()
-    expect(ability.getReason('create', 'Comment')).toBeUndefined()
+    expect(ability.getReason('read', 'Post')).toBe('Can read all posts')
+    expect(ability.getReason('create', 'Comment')).toBe('Can create comments')
   })
 
   it('should prioritize cannot rules with reasons over can rules', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('manage', 'Post')
+    ability.can('manage', 'Post').reason('Full access granted')
     ability.cannot('delete', 'Post').reason('Deletion disabled')
 
     expect(ability.isAllowed('create', 'Post')).toBeTruthy()
     expect(ability.isAllowed('delete', 'Post')).toBeFalsy()
-    expect(ability.getReason('create', 'Post')).toBeUndefined()
+    expect(ability.getReason('create', 'Post')).toBe('Full access granted')
     expect(ability.getReason('delete', 'Post')).toBe('Deletion disabled')
   })
 
   it('should handle multiple cannot rules with different reasons', () => {
     const ability = createAbility<never, 'Post'>()
 
-    ability.can('manage', 'Post')
+    ability.can('manage', 'Post').reason('Full access granted')
     ability.cannot('delete', 'Post', { published: true }).reason('Cannot delete published posts')
     ability
       .cannot('delete', 'Post', { hasComments: true })
