@@ -33,6 +33,7 @@ export const createAbility = <
     },
   })
 
+  // Define if action on resource is allowed
   self.can = (action, resource, conditions) => {
     const actions = isArray(action) ? action : [action]
     const resources = isArray(resource) ? resource : [resource]
@@ -54,6 +55,7 @@ export const createAbility = <
     return Object.assign(self, _createReasonMethod(newRuleIndices))
   }
 
+  // Define if action on resource is not allowed
   self.cannot = (action, resource, conditions) => {
     const actions = isArray(action) ? action : [action]
     const resources = isArray(resource) ? resource : [resource]
@@ -76,6 +78,7 @@ export const createAbility = <
     return Object.assign(self, _createReasonMethod(newRuleIndices))
   }
 
+  // Determine if an action on a resource is allowed
   self.isAllowed = (action, resource, conditions) => {
     const actionsToCheck = isArray(action) ? action : [action]
     const resourcesToCheck = isArray(resource) ? resource : [resource]
@@ -119,8 +122,10 @@ export const createAbility = <
     return result.isAllowed
   }
 
+  // Determine if an action on a resource is not allowed
   self.notAllowed = (action, resource, conditions) => !self.isAllowed(action, resource, conditions)
 
+  // Get the reason for the last rule that matched the action and resource
   self.getReason = (action, resource, conditions) => {
     const actionsToCheck = isArray(action) ? action : [action]
     const resourcesToCheck = isArray(resource) ? resource : [resource]
@@ -162,6 +167,7 @@ export const createAbility = <
     return matchingRule?.reason
   }
 
+  // Throw an error if the action on the resource is not allowed
   self.throwIfNotAllowed = (action, resource, conditions) => {
     if (!self.isAllowed(action, resource, conditions)) {
       const reason = self.getReason(action, resource, conditions)
@@ -169,6 +175,7 @@ export const createAbility = <
     }
   }
 
+  // Get all rules
   self.rules = rules
 
   return self
