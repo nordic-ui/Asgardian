@@ -155,19 +155,19 @@ describe("ABAC Ability Hook 2", () => {
 
           {/* Own post permissions */}
           <div data-testid="own-post">
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("read", "Post", testPost) && (
               <span>Can read own post</span>
             )}
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("update", "Post", testPost) && (
               <span>Can update own post</span>
             )}
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("publish", "Post", testPost) && (
               <span>Can publish own post</span>
             )}
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("delete", "Post", testPost) && (
               <span>Can delete own post</span>
             )}
@@ -175,11 +175,11 @@ describe("ABAC Ability Hook 2", () => {
 
           {/* Other post permissions */}
           <div data-testid="other-post">
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("read", "Post", otherPost) && (
               <span>Can read other post</span>
             )}
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("update", "Post", otherPost) && (
               <span>Can update other post</span>
             )}
@@ -187,7 +187,7 @@ describe("ABAC Ability Hook 2", () => {
 
           {/* User permissions */}
           <div data-testid="user-perms">
-            {/* @ts-expect-error */}
+            {/* @ts-expect-error - Intentionally using non-condition for the test */}
             {isAllowed("update", "User", user) && (
               <span>Can update profile</span>
             )}

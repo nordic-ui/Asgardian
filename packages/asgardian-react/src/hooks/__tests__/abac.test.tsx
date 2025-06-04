@@ -238,7 +238,7 @@ describe("ABAC Ability Hook", () => {
             <label htmlFor="post-select">Selected Post:</label>
             <select id="post-select" onChange={handlePostChange}>
               <option value="own-draft">Own Draft Post</option>
-              <option value="other-published">Other's Published Post</option>
+              <option value="other-published">Other Published Post</option>
               <option value="confidential">Confidential Post</option>
               <option value="dept-review">Department Post in Review</option>
             </select>
@@ -277,28 +277,28 @@ describe("ABAC Ability Hook", () => {
           </div>
 
           {/* Basic post actions */}
-          {/* @ts-expect-error */}
+          {/* @ts-expect-error - Intentionally using non-condition for the test */}
           {isAllowed("read", "Post", selectedPost) && (
             <button data-testid="read-post">Read Post</button>
           )}
 
-          {/* @ts-expect-error */}
+          {/* @ts-expect-error - Intentionally using non-condition for the test */}
           {isAllowed("update", "Post", selectedPost) && (
             <button data-testid="update-post">Update Post</button>
           )}
 
-          {/* @ts-expect-error */}
+          {/* @ts-expect-error - Intentionally using non-condition for the test */}
           {isAllowed("delete", "Post", selectedPost) && (
             <button data-testid="delete-post">Delete Post</button>
           )}
 
           {/* Publishing permissions */}
-          {/* @ts-expect-error */}
+          {/* @ts-expect-error - Intentionally using non-condition for the test */}
           {isAllowed("publish", "Post", selectedPost) && (
             <button data-testid="publish-post">Publish Post</button>
           )}
 
-          {/* @ts-expect-error */}
+          {/* @ts-expect-error - Intentionally using non-condition for the test */}
           {isAllowed("approve", "Post", selectedPost) && (
             <button data-testid="approve-post">Approve Post</button>
           )}
@@ -311,7 +311,7 @@ describe("ABAC Ability Hook", () => {
           )}
 
           {/* User management */}
-          {/* @ts-expect-error */}
+          {/* @ts-expect-error - Intentionally using non-condition for the test */}
           {isAllowed("update", "User", currentUser) && (
             <button data-testid="update-self">Update Profile</button>
           )}
