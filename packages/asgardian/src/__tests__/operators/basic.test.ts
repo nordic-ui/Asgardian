@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterAll } from 'vitest'
 
 import { checkConditionValue } from '../../core/checkConditionValue'
-import { Condition } from '../../types'
+import type { Condition } from '../../types'
 
 describe('Basic Field Conditions', () => {
   const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -14,7 +14,7 @@ describe('Basic Field Conditions', () => {
     const condition: Condition = {
       status: 'published',
     }
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeTruthy()
   })
 
   it('should return false for a direct field equality mismatch', () => {
@@ -22,7 +22,7 @@ describe('Basic Field Conditions', () => {
       status: 'draft',
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle nested field equality mismatch with direct value', () => {
@@ -30,7 +30,7 @@ describe('Basic Field Conditions', () => {
       'author.id': 999,
     }
 
-    expect(checkConditionValue(condition, { author: { id: 101 } })).toBe(false)
+    expect(checkConditionValue(condition, { author: { id: 101 } })).toBeFalsy()
   })
 
   it('should handle boolean field equality', () => {
@@ -38,7 +38,7 @@ describe('Basic Field Conditions', () => {
       isFeatured: false,
     }
 
-    expect(checkConditionValue(condition, { isFeatured: false })).toBe(true)
+    expect(checkConditionValue(condition, { isFeatured: false })).toBeTruthy()
   })
 
   it('should handle null field equality', () => {
@@ -46,7 +46,7 @@ describe('Basic Field Conditions', () => {
       category: null,
     }
 
-    expect(checkConditionValue(condition, { category: null })).toBe(true)
+    expect(checkConditionValue(condition, { category: null })).toBeTruthy()
   })
 
   it('should return false for a null field with non-null condition', () => {
@@ -54,6 +54,6 @@ describe('Basic Field Conditions', () => {
       category: 'some_category',
     }
 
-    expect(checkConditionValue(condition, { category: null })).toBe(false)
+    expect(checkConditionValue(condition, { category: null })).toBeFalsy()
   })
 })

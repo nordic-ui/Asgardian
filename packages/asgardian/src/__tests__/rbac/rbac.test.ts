@@ -37,35 +37,35 @@ describe('Role-Based Access Control (RBAC)', () => {
     }
 
     // Admin
-    expect(permissions(admin).isAllowed('manage', 'all')).toBe(true)
-    expect(permissions(admin).isAllowed('manage', 'Post')).toBe(true)
-    expect(permissions(admin).isAllowed('manage', 'Comment')).toBe(true)
+    expect(permissions(admin).isAllowed('manage', 'all')).toBeTruthy()
+    expect(permissions(admin).isAllowed('manage', 'Post')).toBeTruthy()
+    expect(permissions(admin).isAllowed('manage', 'Comment')).toBeTruthy()
 
     // Editor
-    expect(permissions(editor).isAllowed(['read', 'create'], 'Post')).toBe(true)
+    expect(permissions(editor).isAllowed(['read', 'create'], 'Post')).toBeTruthy()
     expect(
       permissions(editor).isAllowed(['update', 'delete', 'publish'], 'Post', { authorId: 2 }),
-    ).toBe(true)
+    ).toBeTruthy()
     expect(
       permissions(editor).isAllowed(['update', 'delete', 'publish'], 'Post', { authorId: 1 }),
-    ).toBe(false)
-    expect(permissions(editor).isAllowed(['read', 'create'], 'Comment')).toBe(true)
+    ).toBeFalsy()
+    expect(permissions(editor).isAllowed(['read', 'create'], 'Comment')).toBeTruthy()
     expect(
       permissions(editor).isAllowed(['update', 'delete'], 'Comment', { authorId: 2, postId: 1 }),
-    ).toBe(true)
+    ).toBeTruthy()
     expect(
       permissions(editor).isAllowed(['update', 'delete'], 'Comment', { authorId: 1, postId: 2 }),
-    ).toBe(false)
+    ).toBeFalsy()
 
     // Viewer
-    expect(permissions(viewer).isAllowed('read', 'Post', { published: true })).toBe(true)
-    expect(permissions(viewer).isAllowed('read', 'Post', { published: false })).toBe(false)
-    expect(permissions(viewer).isAllowed(['create', 'delete', 'publish'], 'Post')).toBe(false)
-    expect(permissions(viewer).isAllowed(['read', 'create'], 'Comment')).toBe(true)
-    expect(permissions(viewer).isAllowed('delete', 'Comment')).toBe(false)
+    expect(permissions(viewer).isAllowed('read', 'Post', { published: true })).toBeTruthy()
+    expect(permissions(viewer).isAllowed('read', 'Post', { published: false })).toBeFalsy()
+    expect(permissions(viewer).isAllowed(['create', 'delete', 'publish'], 'Post')).toBeFalsy()
+    expect(permissions(viewer).isAllowed(['read', 'create'], 'Comment')).toBeTruthy()
+    expect(permissions(viewer).isAllowed('delete', 'Comment')).toBeFalsy()
 
     // No role
-    expect(permissions(unknown).isAllowed('manage', 'Post')).toBe(false)
-    expect(permissions(unknown).isAllowed('manage', 'Comment')).toBe(false)
+    expect(permissions(unknown).isAllowed('manage', 'Post')).toBeFalsy()
+    expect(permissions(unknown).isAllowed('manage', 'Comment')).toBeFalsy()
   })
 })

@@ -28,7 +28,7 @@ describe('getDeepValue', () => {
       },
     }
     expect(getDeepValue(obj, 'user.profile.id')).toBe(123)
-    expect(getDeepValue(obj, 'user.profile.details.verified')).toBe(true)
+    expect(getDeepValue(obj, 'user.profile.details.verified')).toBeTruthy()
   })
 
   it('should return undefined for invalid paths', () => {

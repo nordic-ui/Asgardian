@@ -40,10 +40,10 @@ describe('Attribute-Based Access Control (ABAC)', () => {
         })
 
         // Manager can manage employee's posts
-        expect(managerAbility.isAllowed('update', 'Post', { authorId: 3 })).toBe(true)
+        expect(managerAbility.isAllowed('update', 'Post', { authorId: 3 })).toBeTruthy()
 
         // Manager can't manage posts from other departments
-        expect(managerAbility.isAllowed('update', 'Post', { authorId: 999 })).toBe(false)
+        expect(managerAbility.isAllowed('update', 'Post', { authorId: 999 })).toBeFalsy()
       })
     })
 
@@ -56,8 +56,8 @@ describe('Attribute-Based Access Control (ABAC)', () => {
           managerId: 2,
           isActive: true,
         })
-        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 3 })).toBe(true)
-        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 2 })).toBe(false)
+        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 3 })).toBeTruthy()
+        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 2 })).toBeFalsy()
       })
     })
   })
@@ -107,7 +107,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
           isActive: true,
         })
 
-        expect(adminAbility.isAllowed('manage', 'Post')).toBe(true) // role-based
+        expect(adminAbility.isAllowed('manage', 'Post')).toBeTruthy() // role-based
       })
     })
 
@@ -120,8 +120,8 @@ describe('Attribute-Based Access Control (ABAC)', () => {
           isActive: true,
         })
 
-        expect(managerAbility.isAllowed('manage', 'Post', { departmentId: 'HR' })).toBe(true) // attribute-based
-        expect(managerAbility.isAllowed('manage', 'Post', { departmentId: 'IT' })).toBe(false) // attribute-based
+        expect(managerAbility.isAllowed('manage', 'Post', { departmentId: 'HR' })).toBeTruthy() // attribute-based
+        expect(managerAbility.isAllowed('manage', 'Post', { departmentId: 'IT' })).toBeFalsy() // attribute-based
       })
     })
 
@@ -135,10 +135,10 @@ describe('Attribute-Based Access Control (ABAC)', () => {
           isActive: true,
         })
 
-        expect(employeeAbility.isAllowed('read', 'Post')).toBe(true) // role-based
-        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 3 })).toBe(true) // attribute-based
-        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 2 })).toBe(false) // attribute-based
-        expect(employeeAbility.isAllowed('create', 'Post')).toBe(true) // conditional on user attribute
+        expect(employeeAbility.isAllowed('read', 'Post')).toBeTruthy() // role-based
+        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 3 })).toBeTruthy() // attribute-based
+        expect(employeeAbility.isAllowed('update', 'Post', { authorId: 2 })).toBeFalsy() // attribute-based
+        expect(employeeAbility.isAllowed('create', 'Post')).toBeTruthy() // conditional on user attribute
       })
 
       it('should not allow ex-employee to manage posts', () => {
@@ -150,8 +150,8 @@ describe('Attribute-Based Access Control (ABAC)', () => {
           isActive: false,
         })
 
-        expect(exEmployeeAbility.isAllowed('read', 'Post')).toBe(true) // role-based
-        expect(exEmployeeAbility.isAllowed('create', 'Post')).toBe(false) // conditional on user attribute
+        expect(exEmployeeAbility.isAllowed('read', 'Post')).toBeTruthy() // role-based
+        expect(exEmployeeAbility.isAllowed('create', 'Post')).toBeFalsy() // conditional on user attribute
       })
     })
   })

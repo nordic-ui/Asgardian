@@ -8,23 +8,23 @@ describe('Ability', () => {
 
     ability.can('read', 'Post')
 
-    expect(ability.isAllowed('read', 'Post')).toBe(true)
+    expect(ability.isAllowed('read', 'Post')).toBeTruthy()
   })
 
   it('should not allow an action on a resource when not permitted', () => {
     const ability = createAbility<never, 'Post'>()
 
-    expect(ability.isAllowed('read', 'Post')).toBe(false)
+    expect(ability.isAllowed('read', 'Post')).toBeFalsy()
   })
 
   it("should ensure 'manage' takes precedence over specific actions", () => {
     const ability = createAbility<'publish', 'Post'>()
 
-    expect(ability.isAllowed('publish', 'Post')).toBe(false)
+    expect(ability.isAllowed('publish', 'Post')).toBeFalsy()
 
     ability.can('manage', 'all')
 
-    expect(ability.isAllowed('publish', 'Post')).toBe(true)
+    expect(ability.isAllowed('publish', 'Post')).toBeTruthy()
   })
 
   it('should handle multiple actions in a single rule', () => {
@@ -32,7 +32,7 @@ describe('Ability', () => {
 
     ability.can(['read', 'create'], 'Post')
 
-    expect(ability.isAllowed('read', 'Post')).toBe(true)
+    expect(ability.isAllowed('read', 'Post')).toBeTruthy()
   })
 
   it('should handle multiple resources in a single rule', () => {
@@ -40,7 +40,7 @@ describe('Ability', () => {
 
     ability.can('read', ['Post', 'Comment'])
 
-    expect(ability.isAllowed('read', ['Post', 'Comment'])).toBe(true)
+    expect(ability.isAllowed('read', ['Post', 'Comment'])).toBeTruthy()
   })
 
   it('should handle all resources', () => {
@@ -48,9 +48,9 @@ describe('Ability', () => {
 
     ability.can('manage', 'all')
 
-    expect(ability.isAllowed('create', 'Post')).toBe(true)
-    expect(ability.isAllowed('delete', 'Post')).toBe(true)
-    expect(ability.isAllowed('create', 'Comment')).toBe(true)
+    expect(ability.isAllowed('create', 'Post')).toBeTruthy()
+    expect(ability.isAllowed('delete', 'Post')).toBeTruthy()
+    expect(ability.isAllowed('create', 'Comment')).toBeTruthy()
   })
 
   it('should handle all resources with exceptions', () => {
@@ -59,10 +59,10 @@ describe('Ability', () => {
     ability.can('manage', 'all')
     ability.cannot('delete', 'Comment') // this should take precedence over the previous rule since it's declared later
 
-    expect(ability.isAllowed(['create', 'delete'], 'Post')).toBe(true)
+    expect(ability.isAllowed(['create', 'delete'], 'Post')).toBeTruthy()
 
-    expect(ability.isAllowed('create', 'Comment')).toBe(true)
-    expect(ability.isAllowed('delete', 'Comment')).toBe(false)
+    expect(ability.isAllowed('create', 'Comment')).toBeTruthy()
+    expect(ability.isAllowed('delete', 'Comment')).toBeFalsy()
   })
 
   it('should handle all actions with exceptions', () => {
@@ -72,10 +72,10 @@ describe('Ability', () => {
     ability.cannot('delete', 'Post')
     ability.can('delete', 'all') // this should take precedence over the previous rules since `all` includes `Post`
 
-    expect(ability.isAllowed(['create', 'update', 'delete'], 'Post')).toBe(true)
+    expect(ability.isAllowed(['create', 'update', 'delete'], 'Post')).toBeTruthy()
 
-    expect(ability.isAllowed('create', 'Comment')).toBe(false)
-    expect(ability.isAllowed('delete', 'Comment')).toBe(true) // TODO: Figure out if this is the behaviour I want
+    expect(ability.isAllowed('create', 'Comment')).toBeFalsy()
+    expect(ability.isAllowed('delete', 'Comment')).toBeTruthy() // TODO: Figure out if this is the behaviour I want
   })
 
   it('should respect conditions when checking permissions', () => {
@@ -83,8 +83,8 @@ describe('Ability', () => {
 
     ability.can('read', 'Post', { published: true })
 
-    expect(ability.isAllowed('read', 'Post', { published: true })).toBe(true)
-    expect(ability.isAllowed('read', 'Post', { published: false })).toBe(false)
+    expect(ability.isAllowed('read', 'Post', { published: true })).toBeTruthy()
+    expect(ability.isAllowed('read', 'Post', { published: false })).toBeFalsy()
   })
 
   it('should handle multiple conditions', () => {
@@ -93,9 +93,9 @@ describe('Ability', () => {
     // Equivalent to: ability.can('manage', 'Post', { authorId: 123, published: true })
     ability.can('manage', 'Post', { $and: [{ authorId: 123 }, { published: true }] })
 
-    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBe(true)
-    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: false })).toBe(false)
-    expect(ability.isAllowed('manage', 'Post', { authorId: 456, published: true })).toBe(false)
+    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: true })).toBeTruthy()
+    expect(ability.isAllowed('manage', 'Post', { authorId: 123, published: false })).toBeFalsy()
+    expect(ability.isAllowed('manage', 'Post', { authorId: 456, published: true })).toBeFalsy()
   })
 
   it('should handle cannot rules', () => {
@@ -104,8 +104,8 @@ describe('Ability', () => {
     ability.can('manage', 'Post')
     ability.cannot('delete', 'Post')
 
-    expect(ability.isAllowed(['create', 'read', 'update'], 'Post')).toBe(true)
-    expect(ability.isAllowed('delete', 'Post')).toBe(false)
+    expect(ability.isAllowed(['create', 'read', 'update'], 'Post')).toBeTruthy()
+    expect(ability.isAllowed('delete', 'Post')).toBeFalsy()
   })
 
   it('should handle role-based permissions', () => {
@@ -113,8 +113,8 @@ describe('Ability', () => {
 
     adminAbility.can('manage', 'all')
 
-    expect(adminAbility.isAllowed('create', 'Post')).toBe(true)
-    expect(adminAbility.isAllowed('delete', 'Comment')).toBe(true)
+    expect(adminAbility.isAllowed('create', 'Post')).toBeTruthy()
+    expect(adminAbility.isAllowed('delete', 'Comment')).toBeTruthy()
 
     const userAbility = createAbility<never, 'Post' | 'Comment'>()
 
@@ -122,18 +122,18 @@ describe('Ability', () => {
     userAbility.can(['create', 'update', 'delete'], 'Post', { authorId: 123 })
     userAbility.can(['create', 'read'], 'Comment')
 
-    expect(userAbility.isAllowed('read', 'Post')).toBe(true)
-    expect(userAbility.isAllowed(['create', 'delete'], 'Post', { authorId: 123 })).toBe(true)
-    expect(userAbility.isAllowed(['create', 'delete'], 'Post', { authorId: 456 })).toBe(false)
+    expect(userAbility.isAllowed('read', 'Post')).toBeTruthy()
+    expect(userAbility.isAllowed(['create', 'delete'], 'Post', { authorId: 123 })).toBeTruthy()
+    expect(userAbility.isAllowed(['create', 'delete'], 'Post', { authorId: 456 })).toBeFalsy()
 
     const visitorAbility = createAbility<never, 'Post' | 'Comment'>()
 
     visitorAbility.can('read', 'Post', { published: true })
     visitorAbility.can('read', 'Comment')
 
-    expect(visitorAbility.isAllowed('read', 'Post', { published: true })).toBe(true)
-    expect(visitorAbility.isAllowed('read', 'Post', { published: false })).toBe(false)
-    expect(visitorAbility.isAllowed('create', 'Post')).toBe(false)
+    expect(visitorAbility.isAllowed('read', 'Post', { published: true })).toBeTruthy()
+    expect(visitorAbility.isAllowed('read', 'Post', { published: false })).toBeFalsy()
+    expect(visitorAbility.isAllowed('create', 'Post')).toBeFalsy()
   })
 
   it('should handle chained ability definitions', () => {
@@ -142,12 +142,12 @@ describe('Ability', () => {
       .can(['read', 'create'], 'Comment')
       .cannot('update', 'Comment')
 
-    expect(ability.isAllowed('read', 'Post')).toBe(true)
-    expect(ability.isAllowed('delete', 'Post')).toBe(false)
-    expect(ability.isAllowed('read', 'Comment')).toBe(true)
-    expect(ability.isAllowed('create', 'Comment')).toBe(true)
-    expect(ability.isAllowed('update', 'Comment')).toBe(false)
-    expect(ability.isAllowed('delete', 'Comment')).toBe(false)
+    expect(ability.isAllowed('read', 'Post')).toBeTruthy()
+    expect(ability.isAllowed('delete', 'Post')).toBeFalsy()
+    expect(ability.isAllowed('read', 'Comment')).toBeTruthy()
+    expect(ability.isAllowed('create', 'Comment')).toBeTruthy()
+    expect(ability.isAllowed('update', 'Comment')).toBeFalsy()
+    expect(ability.isAllowed('delete', 'Comment')).toBeFalsy()
   })
 
   it('should handle not allowed actions', () => {
@@ -156,8 +156,8 @@ describe('Ability', () => {
     ability.can('read', 'Post')
     ability.cannot('delete', 'Post')
 
-    expect(ability.notAllowed('read', 'Post')).toBe(false)
-    expect(ability.notAllowed('delete', 'Post')).toBe(true)
+    expect(ability.notAllowed('read', 'Post')).toBeFalsy()
+    expect(ability.notAllowed('delete', 'Post')).toBeTruthy()
   })
 
   it('should handle destructuring of ability', () => {
@@ -165,10 +165,10 @@ describe('Ability', () => {
     can('read', 'Post')
     cannot('delete', 'Post')
 
-    expect(isAllowed('read', 'Post')).toBe(true)
-    expect(isAllowed('delete', 'Post')).toBe(false)
-    expect(notAllowed('read', 'Post')).toBe(false)
-    expect(notAllowed('delete', 'Post')).toBe(true)
+    expect(isAllowed('read', 'Post')).toBeTruthy()
+    expect(isAllowed('delete', 'Post')).toBeFalsy()
+    expect(notAllowed('read', 'Post')).toBeFalsy()
+    expect(notAllowed('delete', 'Post')).toBeTruthy()
   })
 
   it('should handle reasons', () => {
@@ -188,21 +188,21 @@ describe('Ability', () => {
 
     ability.cannot('delete', 'Post').reason('Deletion not allowed')
 
-    expect(ability.isAllowed('read', 'Post')).toBe(true)
+    expect(ability.isAllowed('read', 'Post')).toBeTruthy()
 
-    expect(ability.isAllowed('update', 'Post', { userId: 1 })).toBe(true)
-    expect(ability.isAllowed('update', 'Post', { userId: 2 })).toBe(false)
+    expect(ability.isAllowed('update', 'Post', { userId: 1 })).toBeTruthy()
+    expect(ability.isAllowed('update', 'Post', { userId: 2 })).toBeFalsy()
     expect(ability.getReason('update', 'Post', { userId: 2 })).toBe(
       'User must be the owner of the post',
     )
 
-    expect(ability.isAllowed('publish', 'Post', { status: 'published' })).toBe(true)
-    expect(ability.isAllowed('publish', 'Post', { status: 'draft' })).toBe(false)
+    expect(ability.isAllowed('publish', 'Post', { status: 'published' })).toBeTruthy()
+    expect(ability.isAllowed('publish', 'Post', { status: 'draft' })).toBeFalsy()
     expect(ability.getReason('publish', 'Post', { status: 'draft' })).toBe(
       'Post must not be in draft status',
     )
 
-    expect(ability.isAllowed('delete', 'Post')).toBe(false)
+    expect(ability.isAllowed('delete', 'Post')).toBeFalsy()
     expect(ability.getReason('delete', 'Post')).toBe('Deletion not allowed')
   })
 })

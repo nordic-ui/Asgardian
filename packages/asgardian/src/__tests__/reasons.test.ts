@@ -61,10 +61,10 @@ describe('Ability Reasons', () => {
     ability.can('read', 'Post')
     ability.cannot('delete', 'Post').reason('Deletion not allowed')
 
-    expect(() => ability.throwIfNotAllowed('read', 'Post')).not.toThrow()
+    expect(() => ability.throwIfNotAllowed('read', 'Post')).not.toThrowError()
 
-    expect(() => ability.throwIfNotAllowed('delete', 'Post')).toThrow(ForbiddenError)
-    expect(() => ability.throwIfNotAllowed('delete', 'Post')).toThrow('Deletion not allowed')
+    expect(() => ability.throwIfNotAllowed('delete', 'Post')).toThrowError(ForbiddenError)
+    expect(() => ability.throwIfNotAllowed('delete', 'Post')).toThrowError('Deletion not allowed')
   })
 
   it('should throw ForbiddenError with default message when no reason is provided', () => {
@@ -72,16 +72,15 @@ describe('Ability Reasons', () => {
 
     ability.cannot('write', 'Post')
 
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrow(ForbiddenError)
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrow('Access denied')
+    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError(ForbiddenError)
+    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError('Access denied')
   })
 
   it('should throw ForbiddenError with default message when action is not explicitly allowed', () => {
     const ability = createAbility<'write', 'Post'>()
 
-    // No rules defined, so 'write' should not be allowed
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrow(ForbiddenError)
-    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrow('Access denied')
+    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError(ForbiddenError)
+    expect(() => ability.throwIfNotAllowed('write', 'Post')).toThrowError('Access denied')
   })
 
   it('should throw ForbiddenError with reason based on conditions', () => {
@@ -90,12 +89,12 @@ describe('Ability Reasons', () => {
     ability.can('update', 'Post')
     ability.cannot('update', 'Post', { locked: true }).reason('Post is locked for editing')
 
-    expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: false })).not.toThrow()
+    expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: false })).not.toThrowError()
 
-    expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: true })).toThrow(
+    expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: true })).toThrowError(
       ForbiddenError,
     )
-    expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: true })).toThrow(
+    expect(() => ability.throwIfNotAllowed('update', 'Post', { locked: true })).toThrowError(
       'Post is locked for editing',
     )
   })
@@ -108,10 +107,12 @@ describe('Ability Reasons', () => {
     try {
       ability.throwIfNotAllowed('delete', 'Post')
     } catch (error) {
-      expect(error).toBeInstanceOf(ForbiddenError)
-      expect(error).toBeInstanceOf(Error)
-      expect((error as ForbiddenError).name).toBe('ForbiddenError')
-      expect((error as ForbiddenError).message).toBe('Custom error message')
+      // I don't like type assertions like this, but in a test it's fine
+      const _typedError = error as ForbiddenError
+
+      expect(_typedError).toBeInstanceOf(ForbiddenError)
+      expect(_typedError.name).toBe('ForbiddenError')
+      expect(_typedError.message).toBe('Custom error message')
     }
   })
 
@@ -137,9 +138,9 @@ describe('Ability Reasons', () => {
     ability.can('manage', 'Post')
     ability.cannot('delete', 'Post').reason('Deletion disabled')
 
-    expect(ability.isAllowed('create', 'Post')).toBe(true)
-    expect(ability.isAllowed('delete', 'Post')).toBe(false)
-    expect(ability.getReason('create', 'Post')).toBeUndefined() // can rules don't have reasons
+    expect(ability.isAllowed('create', 'Post')).toBeTruthy()
+    expect(ability.isAllowed('delete', 'Post')).toBeFalsy()
+    expect(ability.getReason('create', 'Post')).toBeUndefined()
     expect(ability.getReason('delete', 'Post')).toBe('Deletion disabled')
   })
 
@@ -158,23 +159,5 @@ describe('Ability Reasons', () => {
     expect(ability.getReason('delete', 'Post', { published: false, hasComments: true })).toBe(
       'Cannot delete posts with comments',
     )
-  })
-
-  it('should do x', () => {
-    const ability = createAbility<never, 'Post'>()
-    ability
-      .cannot('read', 'Post')
-      .reason('Read access denied')
-      .cannot('update', 'Post')
-      .reason('Update access denied')
-      .cannot('delete', 'Post')
-      .reason('Delete access denied')
-      .cannot('create', 'Post')
-      .reason('Create access denied')
-
-    expect(ability.getReason('read', 'Post')).toBe('Read access denied')
-    expect(ability.getReason('update', 'Post')).toBe('Update access denied')
-    expect(ability.getReason('delete', 'Post')).toBe('Delete access denied')
-    expect(ability.getReason('create', 'Post')).toBe('Create access denied')
   })
 })

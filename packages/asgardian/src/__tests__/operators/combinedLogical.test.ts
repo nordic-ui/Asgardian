@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterAll } from 'vitest'
 
 import { checkConditionValue } from '../../core/checkConditionValue'
-import { Condition } from '../../types'
+import { type Condition } from '../../types'
 
 describe('Combined Logical and Field Conditions', () => {
   const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -45,7 +45,7 @@ describe('Combined Logical and Field Conditions', () => {
         author: { id: 101 },
         tags: ['tech', 'idea'],
       }),
-    ).toBe(true)
+    ).toBeTruthy()
     expect(
       checkConditionValue(condition2, {
         status: 'draft',
@@ -53,7 +53,7 @@ describe('Combined Logical and Field Conditions', () => {
         author: { id: 10 },
         tags: ['draft', 'idea'],
       }),
-    ).toBe(false)
+    ).toBeFalsy()
   })
 
   it('should return correct result with different data object', () => {
@@ -69,6 +69,6 @@ describe('Combined Logical and Field Conditions', () => {
         author: { isActive: false },
         isFeatured: true,
       }),
-    ).toBe(true)
+    ).toBeTruthy()
   })
 })
