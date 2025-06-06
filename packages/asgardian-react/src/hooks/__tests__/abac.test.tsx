@@ -1,10 +1,10 @@
-import { type ChangeEvent, useMemo, useState } from "react";
 import { createAbility } from "@nordic-ui/asgardian";
-
-import { AbilityProvider, useAbility } from "../..";
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
+import { type ChangeEvent, useMemo, useState } from "react";
 import userEvent from "@testing-library/user-event";
+
+import { AbilityProvider, useAbility } from "../..";
 
 describe("ABAC Ability Hook", () => {
   it("should handle attribute-based access control with complex conditions", async () => {

@@ -42,6 +42,9 @@ export const useAbility = <
         ability.notAllowed(...args),
       getReason: (...args: Parameters<typeof ability.getReason>) =>
         ability.getReason(...args),
+      throwIfNotAllowed: (
+        ...args: Parameters<typeof ability.throwIfNotAllowed>
+      ) => ability.throwIfNotAllowed(...args),
     }),
     [ability]
   );

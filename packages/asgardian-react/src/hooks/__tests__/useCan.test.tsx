@@ -1,9 +1,9 @@
+import { createAbility } from "@nordic-ui/asgardian";
 import { renderHook, RenderHookResult } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { useCan } from "../useCan";
-import { createAbility } from "@nordic-ui/asgardian";
 import { AbilityProvider } from "../../context";
+import { useCan } from "../useCan";
 
 type TestActions = "read" | "write" | "delete" | "publish" | "manage";
 type TestResources = "Article" | "Comment" | "User" | "Profile" | "all";

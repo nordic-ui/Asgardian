@@ -1,3 +1,4 @@
+import { createAbility, CreateAbility } from "@nordic-ui/asgardian";
 import type { FC, PropsWithChildren, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -6,7 +7,6 @@ import {
   act,
   RenderHookResult,
 } from "@testing-library/react";
-import { createAbility, CreateAbility } from "@nordic-ui/asgardian";
 
 import { AbilityProvider } from "../../";
 import { useAbility } from "../useAbility";
@@ -47,13 +47,12 @@ describe("useAbility Hook and AbilityProvider", () => {
   const renderAbilityWrapper = (
     currentAbility: CreateAbility<TestActions, TestResources>,
     children: ReactNode
-  ) => {
-    return render(children, {
+  ) =>
+    render(children, {
       wrapper: ({ children }) => (
         <AbilityProvider ability={currentAbility}>{children}</AbilityProvider>
       ),
     });
-  };
 
   // Wrapper for renderHook to include AbilityProvider
   const renderUseAbilityHook = (
@@ -81,21 +80,25 @@ describe("useAbility Hook and AbilityProvider", () => {
 
   it('should correctly check permissions defined with "can"', () => {
     testAbility.can("write", "Article");
-    const { getByTestId } = renderAbilityWrapper(
+
+    const ui = renderAbilityWrapper(
       testAbility,
       <TestComponent action="write" resource="Article" checkType="isAllowed" />
     );
-    expect(getByTestId("result").textContent).toBe("Allowed");
+
+    expect(ui.getByTestId("result").textContent).toBe("Allowed");
   });
 
   it('should correctly check permissions defined with "cannot"', () => {
     testAbility.can("write", "Article");
     testAbility.cannot("write", "Article"); // "cannot" overrides "can"
-    const { getByTestId } = renderAbilityWrapper(
+
+    const ui = renderAbilityWrapper(
       testAbility,
       <TestComponent action="write" resource="Article" checkType="isAllowed" />
     );
-    expect(getByTestId("result").textContent).toBe("Not Allowed");
+
+    expect(ui.getByTestId("result").textContent).toBe("Not Allowed");
   });
 
   it("should correctly use notAllowed", () => {
@@ -110,7 +113,9 @@ describe("useAbility Hook and AbilityProvider", () => {
 
   it('should handle "manage" and "all" permissions', () => {
     testAbility.can("manage", "Article");
+
     const { result: manageArticleResult } = renderUseAbilityHook(testAbility);
+
     expect(
       manageArticleResult.current.isAllowed("read", "Article")
     ).toBeTruthy();
@@ -123,13 +128,17 @@ describe("useAbility Hook and AbilityProvider", () => {
 
     const allAbility = createAbility<TestActions, TestResources>();
     allAbility.can("read", "all");
+
     const { result: readAllResult } = renderUseAbilityHook(allAbility);
+
     expect(readAllResult.current.isAllowed("read", "Article")).toBeTruthy();
     expect(readAllResult.current.isAllowed("read", "Comment")).toBeTruthy();
 
     const manageAllAbility = createAbility<TestActions, TestResources>();
     manageAllAbility.can("manage", "all");
+
     const { result: manageAllResult } = renderUseAbilityHook(manageAllAbility);
+
     expect(manageAllResult.current.isAllowed("delete", "Comment")).toBeTruthy();
     expect(
       manageAllResult.current.isAllowed("publish", "Article")

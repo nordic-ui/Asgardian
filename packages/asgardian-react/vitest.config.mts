@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     dir: "./",
     globals: true,
-    // silent: true, // Disable console logs
+    silent: true, // Disable console logs
     passWithNoTests: true,
     typecheck: {
       tsconfig: "./tsconfig.json",
