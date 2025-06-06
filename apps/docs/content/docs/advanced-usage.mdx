@@ -4,7 +4,7 @@ title: Advanced Usage
 
 # Advanced Usage
 
-In this section, we will explore advanced usage patterns and best practices for using Asgardian to define and manage permissions. This includes handling dynamic rules, integrating with databases, and optimizing performance.
+In this section, we will explore advanced usage patterns and best practices for using Asgardian to define and manage permissions. This includes handling dynamic rules, integrating with databases, optimizing performance, and advanced error handling.
 
 ## Handling Dynamic Rules
 
@@ -121,6 +121,82 @@ const isAllowed = actions.reduce((acc, action) => {
 console.log(isAllowed);
 ```
 
+## Error Handling Strategies
+
+### Centralized Permission Checking
+
+Create centralized functions for common permission patterns:
+
+```ts
+import { createAbility, ForbiddenError } from '@nordic-ui/asgardian'
+
+class PermissionService {
+  private ability: CreateAbility
+
+  constructor(user: User) {
+    this.ability = this.createUserAbility(user)
+  }
+
+  private createUserAbility(user: User) {
+    const ability = createAbility<AppActions, AppResources>()
+    
+    // Base permissions
+    ability
+      .can('read', 'Post', { published: true })
+      .cannot('read', 'Post', { private: true, authorId: { $ne: user.id } })
+        .reason('This post is private')
+    
+    // Role-based permissions
+    if (user.role === 'admin') {
+      ability.can('manage', 'all')
+    } else if (user.role === 'moderator') {
+      ability
+        .can(['update', 'delete'], 'Post')
+        .cannot('delete', 'Post', { hasComments: true })
+          .reason('Cannot delete posts with comments')
+    }
+    
+    return ability
+  }
+
+  // Centralized checking with detailed error context
+  checkPermission(action: string, resource: string, data?: any) {
+    const isAllowed = this.ability.isAllowed(action, resource, data)
+    
+    if (!isAllowed) {
+      const reason = this.ability.getReason(action, resource, data)
+      
+      // Log the denial for auditing
+      this.logPermissionDenial(action, resource, reason, data)
+      
+      return { allowed: false, reason }
+    }
+    
+    return { allowed: true }
+  }
+
+  // Throw with enhanced context
+  enforcePermission(action: string, resource: string, data?: any) {
+    const result = this.checkPermission(action, resource, data)
+    
+    if (!result.allowed) {
+      throw new ForbiddenError(result.reason || 'Access denied')
+    }
+  }
+
+  private logPermissionDenial(action: string, resource: string, reason?: string, data?: any) {
+    logger.warn('Permission denied', {
+      action,
+      resource,
+      reason,
+      userId: this.user.id,
+      resourceId: data?.id,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+```
+
 ## Best Practices
 
 Here are some best practices to follow when using Asgardian for permission management.
@@ -130,9 +206,22 @@ Here are some best practices to follow when using Asgardian for permission manag
 Avoid duplicating rules. Use conditions and role-based permissions to keep your rules DRY (Don't Repeat Yourself).
 
 ```ts
+// Define reusable reason templates
+const PERMISSION_MESSAGES = {
+  OWNERSHIP_REQUIRED: 'You can only perform this action on your own content',
+  INSUFFICIENT_ROLE: (requiredRole: string) => `This action requires ${requiredRole} role`,
+  RESOURCE_LOCKED: 'This resource is locked and cannot be modified',
+  BUSINESS_HOURS_ONLY: 'This action is only available during business hours',
+  UPGRADE_REQUIRED: (feature: string) => `Upgrade your account to access ${feature}`,
+} as const
+
 ability
-  .can('read', 'Post', (post, context) => post.published || context.user.roles.includes('admin'))
-  .can('update', 'Post', (post, context) => post.authorId === context.userId || context.user.roles.includes('moderator'));
+  .cannot('update', 'Post', { authorId: { $ne: user.id } })
+    .reason(PERMISSION_MESSAGES.OWNERSHIP_REQUIRED)
+  .cannot('delete', 'User', { role: 'admin' })
+    .reason(PERMISSION_MESSAGES.INSUFFICIENT_ROLE('super-admin'))
+  .cannot('publish', 'Post', { subscription: 'free' })
+    .reason(PERMISSION_MESSAGES.UPGRADE_REQUIRED('content publishing'))
 ```
 
 ### Use Roles for Grouping
@@ -140,17 +229,43 @@ ability
 Use roles to group permissions. This makes it easier to manage and update permissions.
 
 ```ts
-const roles = {
-  admin: ['create', 'read', 'update', 'delete', 'manage'],
-  user: ['read'],
-  moderator: ['create', 'update'],
-};
-
-ability
-  .can('manage', 'all', (resource, context) => context.user.roles.includes('admin'))
-  .can('read', 'Post', (resource, context) => context.user.roles.includes('user'))
-  .can(['create', 'update'], 'Post', (resource, context) => 
-    context.user.roles.includes('admin') || context.user.roles.includes('moderator'));
+const createRoleBasedAbility = (user: User) => {
+  const ability = createAbility()
+  
+  switch (user.role) {
+    case 'admin':
+      ability.can('manage', 'all')
+      break
+      
+    case 'moderator':
+      ability
+        .can(['read', 'update'], 'Post')
+        .can(['read', 'delete'], 'Comment')
+        .cannot('delete', 'Post', { published: true })
+          .reason('Moderators cannot delete published posts')
+        .cannot('update', 'User', { role: 'admin' })
+          .reason('Moderators cannot modify admin accounts')
+      break
+      
+    case 'user':
+      ability
+        .can('read', 'Post', { published: true })
+        .can(['create', 'update'], 'Post', { authorId: user.id })
+        .cannot('delete', 'Post')
+          .reason('Regular users cannot delete posts')
+        .cannot('update', 'Post', { published: true })
+          .reason('Cannot edit published posts')
+      break
+      
+    default:
+      ability
+        .can('read', 'Post', { published: true })
+        .cannot('create', 'Post')
+          .reason('Please sign in to create posts')
+  }
+  
+  return ability
+}
 ```
 
 ### Log and Monitor Permissions

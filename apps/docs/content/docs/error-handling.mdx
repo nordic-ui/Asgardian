@@ -1,0 +1,392 @@
+---
+title: Error Handling & Reasons
+---
+
+# Error Handling & Reasons
+
+Asgardian provides comprehensive error handling capabilities that help you provide meaningful feedback to users when permissions are denied. This includes the ability to attach reasons to denial rules and throw structured errors.
+
+## Overview
+
+When defining permission rules, you can provide explanations for why certain actions are denied. This helps in:
+
+- **User Experience**: Providing clear feedback about why an action was rejected
+- **Debugging**: Understanding permission logic during development
+- **Auditing**: Logging detailed information about access attempts
+- **API Responses**: Returning structured error messages
+
+## Adding Reasons to Rules
+
+You can chain `.reason()` method after both `can()` and `cannot()` rules to provide explanations:
+
+```ts
+import { createAbility } from '@nordic-ui/asgardian'
+
+const ability = createAbility<'publish' | 'archive', 'Post' | 'Comment'>()
+
+ability
+  // read published posts
+  .can('read', 'Post', { published: true })
+  .reason('Public posts are readable by everyone')
+  // update own posts
+  .can('update', 'Post', { authorId: 123 })
+  .reason('Authors can edit their own posts')
+  // delete any posts
+  .cannot('delete', 'Post')
+  .reason('Deletion not allowed for security reasons')  
+  // publish non-draft posts
+  .cannot('publish', 'Post', { status: { $ne: 'draft'} })
+  .reason('Cannot publish non-draft posts')
+  // update locked posts
+  .cannot('update', 'Post', { locked: true })
+  .reason('Post is locked for editing')
+```
+
+### Conditional Reasons
+
+Reasons work with conditions, allowing you to provide context-specific explanations:
+
+```ts
+const ability = createAbility<never, 'Post' | 'Comment'>()
+
+ability
+  // manage own posts
+  .can('manage', 'Post', { authorId: 123 })
+  .reason('Full access to own posts')
+  // read published posts
+  .can('read', 'Post', { published: true })
+  .reason('Published posts are publicly accessible')
+  // delete posts with comments
+  .cannot('delete', 'Post', { hasComments: true })
+  .reason('Cannot delete posts that have comments')
+  // update published posts by others
+  .cannot('update', 'Post', { published: true, authorId: { $ne: 123 } })
+  .reason('Cannot update published posts by other authors')
+  // create comments on locked post
+  .cannot('create', 'Comment', { post: { locked: true } })
+  .reason('Comments are disabled on locked posts')
+```
+
+## Retrieving Reasons
+
+Use `getReason()` to get the explanation for why an action was allowed or denied:
+
+```ts
+const ability = createAbility()
+
+ability
+  .can('read', 'Post').reason('Reading is always allowed')
+  .cannot('delete', 'Post').reason('Deletion not allowed')
+  .cannot('update', 'Post', { archived: true }).reason('Cannot modify archived content')
+
+// Get reasons for both allowed and denied actions
+const readReason = ability.getReason('read', 'Post')
+console.log(readReason) // "Reading is always allowed"
+
+const deleteReason = ability.getReason('delete', 'Post')
+console.log(deleteReason) // "Deletion not allowed"
+
+const updateReason = ability.getReason('update', 'Post', { archived: true })
+console.log(updateReason) // "Cannot modify archived content"
+
+const unknownReason = ability.getReason('publish', 'Post')
+console.log(unknownReason) // undefined (no matching rule)
+```
+
+### Reason Precedence
+
+When multiple rules match, the most recent (last defined) rule's reason is returned:
+
+```ts
+const ability = createAbility()
+
+ability
+  .can('update', 'Post').reason('Updates allowed by default')
+  .cannot('update', 'Post', { locked: true }).reason('Post is locked')
+
+// If post is locked, the more specific denial reason is returned
+const reason = ability.getReason('update', 'Post', { locked: true })
+console.log(reason) // "Post is locked"
+
+// If post is not locked, the general allow reason applies  
+const generalReason = ability.getReason('update', 'Post', { locked: false })
+console.log(generalReason) // "Updates allowed by default"
+```
+
+## ForbiddenError
+
+Asgardian provides a ForbiddenError class for structured error handling:
+
+```ts
+import { createAbility, ForbiddenError } from '@nordic-ui/asgardian'
+
+const ability = createAbility()
+ability.cannot('delete', 'Post').reason('Deletion forbidden by policy')
+
+// Manual error creation
+throw new ForbiddenError('Custom error message')
+
+// Error properties
+try {
+  throw new ForbiddenError('Access denied')
+} catch (error) {
+  console.log(error.name)     // "ForbiddenError"
+  console.log(error.message)  // "Access denied"
+  console.log(error instanceof Error)          // true
+  console.log(error instanceof ForbiddenError) // true
+}
+```
+
+## Throwing Errors
+
+Use `throwIfNotAllowed()` to automatically throw `ForbiddenError` when permissions are denied:
+
+```ts
+const ability = createAbility()
+
+ability
+  .can('read', 'Post').reason('Reading is permitted')
+  .cannot('delete', 'Post').reason('Deletion not allowed')
+
+// This won't throw (action is allowed)
+ability.throwIfNotAllowed('read', 'Post')
+
+// This will throw ForbiddenError with reason
+try {
+  ability.throwIfNotAllowed('delete', 'Post')
+} catch (error) {
+  if (error instanceof ForbiddenError) {
+    console.log(error.message) // "Deletion not allowed"
+  }
+}
+```
+
+### With Conditions
+
+`throwIfNotAllowed()` works with conditional permissions:
+
+```ts
+const ability = createAbility()
+
+ability
+  .can('update', 'Post', { authorId: 123 }).reason('Authors can edit their posts')
+  .cannot('update', 'Post', { locked: true }).reason('Post is locked for editing')
+
+const post = { id: 1, authorId: 123, locked: true }
+
+try {
+  ability.throwIfNotAllowed('update', 'Post', post)
+} catch (error) {
+  console.log(error.message) // "Post is locked for editing"
+}
+```
+
+### Default Error Message
+
+When no reason is provided, a default message is used:
+
+```ts
+const ability = createAbility()
+// No explicit rules, so action is not allowed by default
+
+try {
+  ability.throwIfNotAllowed('delete', 'Post')
+} catch (error) {
+  console.log(error.message) // "Access denied"
+}
+```
+
+## Practical Examples
+
+### API Route Protection
+
+```ts
+// Express.js route handler
+app.delete('/api/posts/:id', async (req, res) => {
+  try {
+    const ability = await getUserAbility(req.user)
+    const post = await getPost(req.params.id)
+    
+    ability.throwIfNotAllowed('delete', 'Post', post)
+    
+    await deletePost(req.params.id)
+    res.json({ success: true })
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      res.status(403).json({ 
+        error: 'Permission denied',
+        reason: error.message 
+      })
+    } else {
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+})
+```
+
+### Form Validation
+
+```ts
+const validatePostUpdate = (post: Post, user: User) => {
+  const ability = createUserAbility(user)
+  
+  const validations = []
+  
+  if (ability.notAllowed('update', 'Post', post)) {
+    const reason = ability.getReason('update', 'Post', post)
+    validations.push({
+      field: 'general',
+      message: reason || 'You cannot update this post'
+    })
+  }
+  
+  if (ability.notAllowed('publish', 'Post', post)) {
+    const reason = ability.getReason('publish', 'Post', post)
+    validations.push({
+      field: 'published',
+      message: reason || 'You cannot publish this post'
+    })
+  }
+  
+  return validations
+}
+```
+
+### User-Friendly Messages
+
+```ts
+const ability = createAbility()
+
+ability
+  .can('read', 'Post', { published: true })
+    .reason('Published posts are available to all users')
+  .cannot('read', 'Post', { published: false })
+    .reason('This post is not yet published')
+  .can('update', 'Post', { authorId: 123 })
+    .reason('You have full editing rights to your posts')
+  .cannot('update', 'Post', { authorId: { $ne: 123 } })
+    .reason('You can only edit your own posts')
+  .cannot('delete', 'Post', { hasComments: true })
+    .reason('Cannot delete posts with comments. Please delete comments first.')
+  .cannot('publish', 'Post', { status: 'draft', reviewStatus: { $ne: 'approved' } })
+    .reason('Posts must be reviewed before publishing')
+```
+
+### Logging and Auditing
+
+```ts
+const auditPermissionCheck = (action: string, resource: string, user: User, data?: any) => {
+  const ability = getUserAbility(user)
+  
+  const isAllowed = ability.isAllowed(action, resource, data)
+  const reason = ability.getReason(action, resource, data)
+  
+  logger.info('Permission check', {
+    userId: user.id,
+    action,
+    resource,
+    isAllowed,
+    reason,
+    timestamp: new Date().toISOString(),
+    data: data ? { id: data.id } : null
+  })
+  
+  if (!isAllowed) {
+    // Could also store in database for audit trail
+    await saveAuditLog({
+      userId: user.id,
+      action: 'PERMISSION_DENIED',
+      details: { action, resource, reason }
+    })
+  }
+  
+  return isAllowed
+}
+```
+
+## Best Practices
+
+### 1. Provide Clear, Actionable Reasons
+
+```ts
+// ✅ Good - Clear and actionable for both allow and deny
+ability
+  .can('read', 'Post', { published: true })
+    .reason('Published content is publicly accessible')
+  .cannot('publish', 'Post', { status: 'draft' })
+    .reason('Post must be reviewed before publishing')
+
+// ❌ Less helpful - Vague
+ability
+  .can('read', 'Post')
+    .reason('Allowed')
+  .cannot('publish', 'Post', { status: 'draft' })
+    .reason('Cannot publish')
+```
+
+### 2. Use Consistent Messaging
+
+```ts
+// ✅ Good - Consistent pattern
+const MESSAGES = {
+  PUBLIC_ACCESS: 'This content is publicly accessible',
+  OWNER_ONLY: 'You can only modify your own content',
+  LOCKED_RESOURCE: 'This resource is locked and cannot be modified',
+  INVALID_STATE: (state: string) => `Action not allowed when resource is ${state}`,
+  UPGRADE_REQUIRED: 'Upgrade your account to access this feature'
+}
+
+ability
+  .can('read', 'Post', { published: true })
+    .reason(MESSAGES.PUBLIC_ACCESS)
+  .cannot('delete', 'Post', { authorId: { $ne: 123 } })
+    .reason(MESSAGES.OWNER_ONLY)
+  .cannot('update', 'Post', { locked: true })
+    .reason(MESSAGES.LOCKED_RESOURCE)
+```
+
+### 3. Handle Errors Gracefully
+
+```ts
+const handlePermissionError = (error: unknown, defaultMessage = 'Access denied') => {
+  if (error instanceof ForbiddenError) {
+    return {
+      type: 'PERMISSION_ERROR',
+      message: error.message,
+      code: 'FORBIDDEN'
+    }
+  }
+  
+  return {
+    type: 'UNKNOWN_ERROR', 
+    message: defaultMessage,
+    code: 'INTERNAL_ERROR'
+  }
+}
+```
+
+### 4. Don't Expose Sensitive Information
+
+```ts
+// ✅ Good - Generic but helpful
+ability
+  .can('read', 'Post', { public: true })
+    .reason('Public posts are accessible to all users')
+  .cannot('read', 'Post', { private: true, authorId: { $ne: user.id } })
+    .reason('This post is private')
+
+// ❌ Bad - Exposes internal logic
+ability.cannot('read', 'Post', { private: true, authorId: { $ne: user.id } })
+  .reason('Post is private and authorId 456 does not match current user 123')
+```
+
+## Summary
+
+Asgardian's error handling and reasoning system provides:
+
+- **Contextual Feedback**: Attach reasons to both allow and deny rules for better user experience
+- **Structured Errors**: Use `ForbiddenError` for consistent error handling
+- **Flexible API**: Choose between checking reasons manually or throwing errors automatically
+- **Development Support**: Clear error messages help with debugging and development
+
+This system enables you to build applications with excellent permission feedback while maintaining security and usability.

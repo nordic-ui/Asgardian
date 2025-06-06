@@ -4,6 +4,7 @@ export default {
   "chained-api": "",
   operators: "Operators (NEW)",
   hooks: "React Hooks (NEW)",
+  "error-handling": "Error Handling (NEW)",
   "advanced-usage": {
     display: "hidden",
   },
