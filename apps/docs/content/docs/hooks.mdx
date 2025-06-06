@@ -233,8 +233,8 @@ const RestrictedContent = () => {
 type BlogPostProps = { post: Post }
 
 const BlogPost: FC<BlogPostProps> = ({ post }) => {
-  const { cannot: canEdit } = useCan('edit', 'Post', { authorId: post.authorId })
-  const { cannot: canDelete } = useCan('delete', 'Post', { authorId: post.authorId })
+  const { can: canEdit } = useCan('edit', 'Post', { authorId: post.authorId })
+  const { can: canDelete } = useCan('delete', 'Post', { authorId: post.authorId })
   const { cannot: cannotComment } = useCannot('create', 'Comment')
   
   return (
