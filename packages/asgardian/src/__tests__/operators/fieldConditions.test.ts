@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterAll } from 'vitest'
 
 import { checkConditionValue } from '../../core/checkConditionValue'
-import { Condition } from '../../types'
+import type { Condition } from '../../types'
 
 describe('Field Conditions', () => {
   const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -15,13 +15,13 @@ describe('Field Conditions', () => {
       status: { $eq: 'published' },
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       status: { $eq: 'draft' },
     }
 
-    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle $ne operator', () => {
@@ -29,13 +29,13 @@ describe('Field Conditions', () => {
       status: { $ne: 'draft' },
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       status: { $ne: 'published' },
     }
 
-    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle $in operator', () => {
@@ -43,13 +43,13 @@ describe('Field Conditions', () => {
       status: { $in: ['published', 'archived'] },
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       status: { $in: ['draft', 'pending'] },
     }
 
-    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle $nin operator', () => {
@@ -57,13 +57,13 @@ describe('Field Conditions', () => {
       status: { $nin: ['draft', 'pending'] },
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       status: { $nin: ['published', 'archived'] },
     }
 
-    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle $gt operator', () => {
@@ -71,13 +71,13 @@ describe('Field Conditions', () => {
       views: { $gt: 100 },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       views: { $gt: 200 },
     }
 
-    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBeFalsy()
   })
 
   it('should handle $gte operator', () => {
@@ -85,19 +85,19 @@ describe('Field Conditions', () => {
       views: { $gte: 150 },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
 
     const condition2: Condition = {
       views: { $gte: 100 },
     }
 
-    expect(checkConditionValue(condition2, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition2, { views: 150 })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       views: { $gte: 200 },
     }
 
-    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBeFalsy()
   })
 
   it('should handle $lt operator', () => {
@@ -105,13 +105,13 @@ describe('Field Conditions', () => {
       views: { $lt: 200 },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       views: { $lt: 100 },
     }
 
-    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBeFalsy()
   })
 
   it('should handle $lte operator', () => {
@@ -119,19 +119,19 @@ describe('Field Conditions', () => {
       views: { $lte: 150 },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
 
     const condition2: Condition = {
       views: { $lte: 200 },
     }
 
-    expect(checkConditionValue(condition2, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition2, { views: 150 })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       views: { $lte: 100 },
     }
 
-    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBeFalsy()
   })
 
   it('should handle $between operator for numbers', () => {
@@ -139,13 +139,13 @@ describe('Field Conditions', () => {
       views: { $between: [100, 200] },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       views: { $between: [0, 100] },
     }
 
-    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { views: 150 })).toBeFalsy()
   })
 
   it('should handle $between operator for dates', () => {
@@ -153,7 +153,7 @@ describe('Field Conditions', () => {
       createdAt: { $between: [new Date('2022-12-31'), new Date('2023-01-02')] },
     }
 
-    expect(checkConditionValue(condition, { createdAt: new Date('2023-01-01') })).toBe(true)
+    expect(checkConditionValue(condition, { createdAt: new Date('2023-01-01') })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       createdAt: { $between: [new Date('2023-02-01'), new Date('2023-03-01')] },
@@ -169,13 +169,13 @@ describe('Field Conditions', () => {
       name: { $regex: /^Test/ },
     }
 
-    expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+    expect(checkConditionValue(condition, { name: 'Test Post' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       name: { $regex: /Article$/ },
     }
 
-    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBeFalsy()
   })
 
   it('should handle $contains operator', () => {
@@ -183,13 +183,13 @@ describe('Field Conditions', () => {
       name: { $contains: 'Post' },
     }
 
-    expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+    expect(checkConditionValue(condition, { name: 'Test Post' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       name: { $contains: 'Article' },
     }
 
-    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBeFalsy()
   })
 
   it('should handle $startsWith operator', () => {
@@ -197,13 +197,13 @@ describe('Field Conditions', () => {
       name: { $startsWith: 'Test' },
     }
 
-    expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+    expect(checkConditionValue(condition, { name: 'Test Post' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       name: { $startsWith: 'Draft' },
     }
 
-    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBeFalsy()
   })
 
   it('should handle $endsWith operator', () => {
@@ -211,12 +211,12 @@ describe('Field Conditions', () => {
       name: { $endsWith: 'Post' },
     }
 
-    expect(checkConditionValue(condition, { name: 'Test Post' })).toBe(true)
+    expect(checkConditionValue(condition, { name: 'Test Post' })).toBeTruthy()
 
     const mismatchCondition: Condition = {
       name: { $endsWith: 'Article' },
     }
 
-    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBe(false)
+    expect(checkConditionValue(mismatchCondition, { name: 'Test Post' })).toBeFalsy()
   })
 })

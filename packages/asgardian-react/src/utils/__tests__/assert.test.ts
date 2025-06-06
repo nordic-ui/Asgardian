@@ -53,32 +53,32 @@ describe("assert", () => {
 
   describe("edge cases", () => {
     it("should work with truthy values", () => {
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing truthy values
       expect(() => assert(1, "Should not throw")).not.toThrowError(
         /should not throw/i
       );
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing truthy values
       expect(() => assert("string", "Should not throw")).not.toThrowError(
         /should not throw/i
       );
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing truthy values
       expect(() => assert({}, "Should not throw")).not.toThrowError(
         /should not throw/i
       );
     });
 
     it("should work with falsy values", () => {
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing falsy values
       expect(() => assert(0, "Zero is falsy")).toThrowError(/zero is falsy/i);
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing falsy values
       expect(() => assert("", "Empty string is falsy")).toThrowError(
         /empty string is falsy/i
       );
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing falsy values
       expect(() => assert(null, "Null is falsy")).toThrowError(
         /null is falsy/i
       );
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing falsy values
       expect(() => assert(undefined, "Undefined is falsy")).toThrowError(
         /undefined is falsy/i
       );
@@ -104,7 +104,7 @@ describe("assertType", () => {
     it("should call the type guard function", () => {
       const mockGuard = vi.fn(() => true);
 
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing type guard
       assertType("test", mockGuard);
 
       expect(mockGuard).toHaveBeenCalledWith("test");
@@ -136,7 +136,7 @@ describe("assertType", () => {
     it("should call the type guard function even when it fails", () => {
       const mockGuard = vi.fn(() => false);
 
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally testing type guard
       expect(() => assertType("test", mockGuard)).toThrowError();
       expect(mockGuard).toHaveBeenCalledWith("test");
       expect(mockGuard).toHaveBeenCalledOnce();

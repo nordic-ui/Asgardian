@@ -1,4 +1,4 @@
-import { ConditionValue } from '../types'
+import type { ConditionValue } from '../types'
 import { isArray, isRecord } from './guards'
 
 /**

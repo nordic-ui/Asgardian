@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterAll } from 'vitest'
 
 import { checkConditionValue } from '../../core/checkConditionValue'
-import { Condition } from '../../types'
+import type { Condition } from '../../types'
 
 describe('Edge Cases', () => {
   const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -11,13 +11,13 @@ describe('Edge Cases', () => {
   })
 
   it('should return true for undefined condition', () => {
-    expect(checkConditionValue(undefined, {})).toBe(true)
+    expect(checkConditionValue(undefined, {})).toBeTruthy()
   })
 
   it('should return true for an empty condition object', () => {
     const condition: Condition = {} // Technically an empty AND equivalent
 
-    expect(checkConditionValue(condition, {})).toBe(true)
+    expect(checkConditionValue(condition, {})).toBeTruthy()
   })
 
   it('should return false for a condition with unknown operator and data does not match', () => {
@@ -26,7 +26,7 @@ describe('Edge Cases', () => {
       views: { $unknownOperator: 100 },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(condition, { views: 150 })).toBeFalsy()
     expect(consoleMock).toHaveBeenCalledOnce()
     expect(consoleMock).toHaveBeenLastCalledWith('Unknown operator: $unknownOperator')
   })
@@ -36,7 +36,7 @@ describe('Edge Cases', () => {
       'nonExistent.field': 'someValue',
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(condition, { views: 150 })).toBeFalsy()
   })
 
   it('should return false for an operator condition on a non-existent nested path', () => {
@@ -44,7 +44,7 @@ describe('Edge Cases', () => {
       'nonExistent.field': { $gt: 10 },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(false)
+    expect(checkConditionValue(condition, { views: 150 })).toBeFalsy()
   })
 
   it('should return true for an equality condition on a non-existent nested path when the condition value is also undefined', () => {
@@ -52,7 +52,7 @@ describe('Edge Cases', () => {
       'nonExistent.field': undefined,
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
   })
 
   it('should return false for an equality condition on an existing field when the condition value is undefined', () => {
@@ -60,7 +60,7 @@ describe('Edge Cases', () => {
       status: undefined,
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeFalsy()
   })
 
   it('should return false for a condition on a non-object field', () => {
@@ -68,26 +68,26 @@ describe('Edge Cases', () => {
       'status.nested': 'value', // 'status' is a string, cannot have nested properties
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle null values correctly with $eq', () => {
     const condition: Condition = { value: { $eq: null } }
 
-    expect(checkConditionValue(condition, { value: null })).toBe(true)
+    expect(checkConditionValue(condition, { value: null })).toBeTruthy()
 
     const conditionMismatch: Condition = { value: { $eq: 'some value' } }
 
-    expect(checkConditionValue(conditionMismatch, { value: null })).toBe(false)
+    expect(checkConditionValue(conditionMismatch, { value: null })).toBeFalsy()
   })
 
   it('should handle null values correctly with $ne', () => {
     const condition: Condition = { value: { $ne: 'some value' } }
 
-    expect(checkConditionValue(condition, { value: null })).toBe(true)
+    expect(checkConditionValue(condition, { value: null })).toBeTruthy()
 
     const conditionMismatch: Condition = { value: { $ne: null } }
 
-    expect(checkConditionValue(conditionMismatch, { value: null })).toBe(false)
+    expect(checkConditionValue(conditionMismatch, { value: null })).toBeFalsy()
   })
 })

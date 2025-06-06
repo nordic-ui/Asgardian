@@ -49,8 +49,8 @@ describe('Attribute-Based Access Control (ABAC)', () => {
           isActive: true,
         })
 
-        expect(adminAbility.isAllowed('manage', 'Post')).toBe(true)
-        expect(adminAbility.isAllowed('delete', 'Post')).toBe(true)
+        expect(adminAbility.isAllowed('manage', 'Post')).toBeTruthy()
+        expect(adminAbility.isAllowed('delete', 'Post')).toBeTruthy()
       })
 
       describe('Manager permissions', () => {
@@ -69,7 +69,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: true,
               departmentId: 'HR',
             }), // same department and published
-          ).toBe(true)
+          ).toBeTruthy()
           expect(
             managerAbility.isAllowed('read', 'Post', {
               id: 101,
@@ -78,7 +78,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               confidential: true,
               departmentId: 'HR',
             }), // same department but confidential
-          ).toBe(true)
+          ).toBeTruthy()
           expect(
             managerAbility.isAllowed('read', 'Post', {
               id: 101,
@@ -86,7 +86,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: false,
               departmentId: 'HR',
             }), // same department but not published
-          ).toBe(true)
+          ).toBeTruthy()
           expect(
             managerAbility.isAllowed('read', 'Post', {
               id: 101,
@@ -94,7 +94,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: true,
               departmentId: 'IT',
             }),
-          ).toBe(false) // different department
+          ).toBeFalsy() // different department
         })
       })
 
@@ -115,7 +115,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: true,
               departmentId: 'HR',
             }),
-          ).toBe(true)
+          ).toBeTruthy()
           expect(
             employeeAbility.isAllowed('read', 'Post', {
               id: 103,
@@ -124,7 +124,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               departmentId: 'HR',
               confidential: true,
             }),
-          ).toBe(true) // it's published
+          ).toBeTruthy() // it's published
           expect(
             employeeAbility.isAllowed('read', 'Post', {
               id: 102,
@@ -132,7 +132,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: false,
               departmentId: 'HR',
             }),
-          ).toBe(false) // not published
+          ).toBeFalsy() // not published
           expect(
             employeeAbility.isAllowed('delete', 'Post', {
               id: 101,
@@ -140,7 +140,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: true,
               departmentId: 'HR',
             }),
-          ).toBe(false) // can't delete others' posts
+          ).toBeFalsy() // can't delete others' posts
           expect(
             employeeAbility.isAllowed('update', 'Post', {
               id: 102,
@@ -148,7 +148,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: false,
               departmentId: 'HR',
             }),
-          ).toBe(true) // can update own draft
+          ).toBeTruthy() // can update own draft
         })
 
         it('should allow ex-employee to read their own posts', () => {
@@ -167,7 +167,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: true,
               departmentId: 'HR',
             }),
-          ).toBe(false) // inactive user
+          ).toBeFalsy() // inactive user
         })
       })
     })

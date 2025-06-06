@@ -12,6 +12,6 @@ describe('normalizeDate', () => {
     const dateStr = '2023-01-01'
     const result = normalizeDate(dateStr)
     expect(result).toBeInstanceOf(Date)
-    expect(result.toISOString().startsWith('2023-01-01')).toBe(true)
+    expect(result.toISOString().startsWith('2023-01-01')).toBeTruthy()
   })
 })

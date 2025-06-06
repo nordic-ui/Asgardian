@@ -5,49 +5,49 @@ import { isRecord, isArray } from '../../core/guards'
 describe('Guards', () => {
   describe('isRecord', () => {
     it('should return true for objects', () => {
-      expect(isRecord({})).toBe(true)
-      expect(isRecord({ a: 1 })).toBe(true)
+      expect(isRecord({})).toBeTruthy()
+      expect(isRecord({ a: 1 })).toBeTruthy()
     })
 
     it('should return false for non-objects', () => {
-      expect(isRecord(null)).toBe(false)
-      expect(isRecord(undefined)).toBe(false)
-      expect(isRecord('string')).toBe(false)
-      expect(isRecord(123)).toBe(false)
-      expect(isRecord(true)).toBe(false)
+      expect(isRecord(null)).toBeFalsy()
+      expect(isRecord(undefined)).toBeFalsy()
+      expect(isRecord('string')).toBeFalsy()
+      expect(isRecord(123)).toBeFalsy()
+      expect(isRecord(true)).toBeFalsy()
     })
 
     it('should return false for arrays', () => {
-      expect(isRecord([])).toBe(false)
-      expect(isRecord([1, 2, 3])).toBe(false)
+      expect(isRecord([])).toBeFalsy()
+      expect(isRecord([1, 2, 3])).toBeFalsy()
     })
 
     it('should return false for Date objects', () => {
-      expect(isRecord(new Date())).toBe(false)
+      expect(isRecord(new Date())).toBeFalsy()
     })
   })
 
   describe('isArray', () => {
     it('should return true for arrays', () => {
-      expect(isArray([])).toBe(true)
-      expect(isArray([1, 2, 3])).toBe(true)
+      expect(isArray([])).toBeTruthy()
+      expect(isArray([1, 2, 3])).toBeTruthy()
     })
 
     it('should return false for non-arrays', () => {
-      expect(isArray(null)).toBe(false)
-      expect(isArray(undefined)).toBe(false)
-      expect(isArray('string')).toBe(false)
-      expect(isArray(123)).toBe(false)
-      expect(isArray(true)).toBe(false)
+      expect(isArray(null)).toBeFalsy()
+      expect(isArray(undefined)).toBeFalsy()
+      expect(isArray('string')).toBeFalsy()
+      expect(isArray(123)).toBeFalsy()
+      expect(isArray(true)).toBeFalsy()
     })
 
     it('should return false for objects', () => {
-      expect(isArray({})).toBe(false)
-      expect(isArray({ a: 1 })).toBe(false)
+      expect(isArray({})).toBeFalsy()
+      expect(isArray({ a: 1 })).toBeFalsy()
     })
 
     it('should return false for Date objects', () => {
-      expect(isArray(new Date())).toBe(false)
+      expect(isArray(new Date())).toBeFalsy()
     })
   })
 })

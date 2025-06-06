@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterAll } from 'vitest'
 
 import { checkConditionValue } from '../../core/checkConditionValue'
-import { Condition } from '../../types'
+import type { Condition } from '../../types'
 
 describe('Logical Operator Conditions', () => {
   const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -21,7 +21,7 @@ describe('Logical Operator Conditions', () => {
         views: 150,
         author: { isActive: true },
       }),
-    ).toBe(true)
+    ).toBeTruthy()
   })
 
   it('should handle $and operator where one sub-condition mismatches', () => {
@@ -35,7 +35,7 @@ describe('Logical Operator Conditions', () => {
         views: 150,
         author: { isActive: true },
       }),
-    ).toBe(false)
+    ).toBeFalsy()
   })
 
   it('should handle nested $and operators', () => {
@@ -54,14 +54,14 @@ describe('Logical Operator Conditions', () => {
         views: 150,
         author: { username: 'test_user' },
       }),
-    ).toBe(true)
+    ).toBeTruthy()
     expect(
       checkConditionValue(condition, {
         status: 'published',
         views: 150,
         author: { username: 'non_existing_user' },
       }),
-    ).toBe(false)
+    ).toBeFalsy()
   })
 
   it('should handle $or operator where one sub-condition matches', () => {
@@ -71,7 +71,7 @@ describe('Logical Operator Conditions', () => {
 
     expect(
       checkConditionValue(condition, { status: 'published', views: 200, author: { id: 10 } }),
-    ).toBe(true)
+    ).toBeTruthy()
   })
 
   it('should handle $or operator where all sub-conditions mismatch', () => {
@@ -81,7 +81,7 @@ describe('Logical Operator Conditions', () => {
 
     expect(
       checkConditionValue(condition, { status: 'published', views: 150, author: { id: 10 } }),
-    ).toBe(false)
+    ).toBeFalsy()
   })
 
   it('should handle nested $or operators', () => {
@@ -100,14 +100,14 @@ describe('Logical Operator Conditions', () => {
         views: 150,
         author: { username: 'user1' },
       }),
-    ).toBe(true)
+    ).toBeTruthy()
     expect(
       checkConditionValue(condition, {
         status: 'published',
         views: 150,
         author: { username: 'non_existing_user' },
       }),
-    ).toBe(false)
+    ).toBeFalsy()
   })
 
   it('should handle $not operator where the sub-condition matches', () => {
@@ -115,7 +115,7 @@ describe('Logical Operator Conditions', () => {
       $not: { status: 'published' },
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(false)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeFalsy()
   })
 
   it('should handle $not operator where the sub-condition mismatches', () => {
@@ -123,7 +123,7 @@ describe('Logical Operator Conditions', () => {
       $not: { status: 'draft' },
     }
 
-    expect(checkConditionValue(condition, { status: 'published' })).toBe(true)
+    expect(checkConditionValue(condition, { status: 'published' })).toBeTruthy()
   })
 
   it('should handle $not operator with a field operator condition', () => {
@@ -131,7 +131,7 @@ describe('Logical Operator Conditions', () => {
       $not: { views: { $gt: 200 } },
     }
 
-    expect(checkConditionValue(condition, { views: 150 })).toBe(true)
-    expect(checkConditionValue(condition, { views: 300 })).toBe(false)
+    expect(checkConditionValue(condition, { views: 150 })).toBeTruthy()
+    expect(checkConditionValue(condition, { views: 300 })).toBeFalsy()
   })
 })

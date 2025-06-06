@@ -58,7 +58,9 @@ can(
   action: Action<ExtendedActions> | Action<ExtendedActions>[],
   resource: Resource<ExtendedResources>,
   conditions?: Condition
-): CreateAbility<ExtendedActions, ExtendedResources>
+): CreateAbility<ExtendedActions, ExtendedResources> & {
+  reason: (message: string) => CreateAbility<ExtendedActions, ExtendedResources>
+}
 ```
 
 ##### Parameters
@@ -76,14 +78,18 @@ ability.can('read', 'Post')
 // Multiple actions
 ability.can(['create', 'update'], 'Post')
 
+// With reason
+ability.can('delete', 'Post').reason('You can delete this post')
+
 // With conditions
-ability.can('read', 'Post', { published: true })
-ability.can('update', 'Post', { authorId: 123 })
+ability.can('read', 'Post', { published: true }).reason('Can only read published posts')
 
 // Chaining
 ability
   .can('read', 'Post')
   .can('create', 'Comment')
+  .can('update', 'Comment', { authorId: 123 })
+  .reason('Can only update own comments')
 ```
 
 #### `cannot`
@@ -97,7 +103,9 @@ cannot(
   action: Action<ExtendedActions>,
   resource: Resource<ExtendedResources>,
   conditions?: Condition
-): CreateAbility<ExtendedActions, ExtendedResources>
+): CreateAbility<ExtendedActions, ExtendedResources> & {
+  reason: (message: string) => CreateAbility<ExtendedActions, ExtendedResources>
+}
 ```
 
 ##### Parameters
@@ -109,16 +117,24 @@ cannot(
 ##### Examples
 
 ```ts
-// Simple denial
+// Single action
 ability.cannot('delete', 'Post')
 
-// Conditional denial
+// Multiple actions
+ability.cannot(['create', 'delete'], 'Post')
+
+// With reason
+ability.cannot('delete', 'Post').reason('Deletion not allowed for security')
+
+// With conditions
 ability.cannot('update', 'Post', { archived: true })
 
 // Chaining
 ability
-  .cannot('update', 'Post')
-  .cannot('delete', 'Post')
+  .cannot('read', 'Post')
+  .cannot('create', 'Post')
+  .cannot('update', 'Post', { authorId: 456 })
+  .reason('Can only delete own posts')
 ```
 
 #### `isAllowed`
@@ -184,6 +200,85 @@ ability.notAllowed('delete', 'Post') // true/false
 ability.notAllowed('update', 'Post', { archived: true }) // true/false
 ```
 
+#### `getReason`
+
+Retrieves the reason why an action was denied on a resource.
+
+##### Type Definition
+
+```ts
+getReason(
+  action: Action<ExtendedActions> | Action<ExtendedActions>[],
+  resource: Resource<ExtendedResources>,
+  conditions?: Condition
+): string | undefined
+```
+
+##### Parameters
+
+- **action**: Single action or array of actions to check
+- **resource**: The resource to check against
+- **conditions**: Optional conditions to evaluate
+
+##### Examples
+
+```ts
+// Set up rules with reasons
+ability
+  .cannot('delete', 'Post').reason('Deletion not allowed')
+  .cannot('update', 'Post', { archived: true }).reason('Cannot update archived posts')
+
+// Get reasons
+const deleteReason = ability.getReason('delete', 'Post')
+// Returns: "Deletion not allowed"
+
+const updateReason = ability.getReason('update', 'Post', { archived: true })
+// Returns: "Cannot update archived posts"
+
+const unknownReason = ability.getReason('create', 'Post')
+// Returns: undefined
+```
+
+#### `throwIfNotAllowed`
+
+Throws a `ForbiddenError` if an action is not allowed on a resource.
+
+##### Type Definition
+
+```ts
+throwIfNotAllowed(
+  action: Action<ExtendedActions> | Action<ExtendedActions>[],
+  resource: Resource<ExtendedResources>,
+  conditions?: Condition
+): void
+```
+
+##### Parameters
+
+- **action**: Single action or array of actions to check
+- **resource**: The resource to check against
+- **conditions**: Optional conditions to evaluate
+
+##### Examples
+
+```ts
+// Set up rules
+ability.cannot('delete', 'Post').reason('Deletion forbidden')
+
+// This will throw
+try {
+  ability.throwIfNotAllowed('delete', 'Post')
+} catch (error) {
+  if (error instanceof ForbiddenError) {
+    console.error(error.message) // "Deletion forbidden"
+  }
+}
+
+// This won't throw if allowed
+ability.can('read', 'Post')
+ability.throwIfNotAllowed('read', 'Post') // No error
+```
+
 ### Special Values
 
 #### Default Actions
@@ -201,10 +296,11 @@ ability.notAllowed('update', 'Post', { archived: true }) // true/false
 #### Rule Resolution
 
 1. Rules are evaluated in order of definition
-1. More specific rules take precedence over general rules
-1. Multiple matching rules are combined with OR logic
-1. `cannot` rules take precedence over `can` rules
-1. Conditions must be fully satisfied for a rule to match
+2. More specific rules take precedence over general rules
+3. Multiple matching rules are combined with OR logic
+4. `cannot` rules take precedence over `can` rules
+5. Conditions must be fully satisfied for a rule to match
+6. The most recent matching rule's reason is returned by `getReason()`
 
 #### Type Definitions
 
@@ -226,6 +322,7 @@ type Rule<A extends string, R extends string> = {
   resource: Resource<R>
   inverted?: boolean
   conditions?: Condition
+  reason?: string
 }
 ```
 

@@ -1,3 +1,4 @@
+import { createAbility, CreateAbility } from "@nordic-ui/asgardian";
 import type { FC, PropsWithChildren, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -6,7 +7,6 @@ import {
   act,
   RenderHookResult,
 } from "@testing-library/react";
-import { createAbility, CreateAbility } from "@nordic-ui/asgardian";
 
 import { AbilityProvider } from "../../";
 import { useAbility } from "../useAbility";
@@ -47,13 +47,12 @@ describe("useAbility Hook and AbilityProvider", () => {
   const renderAbilityWrapper = (
     currentAbility: CreateAbility<TestActions, TestResources>,
     children: ReactNode
-  ) => {
-    return render(children, {
+  ) =>
+    render(children, {
       wrapper: ({ children }) => (
         <AbilityProvider ability={currentAbility}>{children}</AbilityProvider>
       ),
     });
-  };
 
   // Wrapper for renderHook to include AbilityProvider
   const renderUseAbilityHook = (
@@ -74,28 +73,32 @@ describe("useAbility Hook and AbilityProvider", () => {
     expect(result.current.isAllowed).toBeInstanceOf(Function);
     expect(result.current.notAllowed).toBeInstanceOf(Function);
 
-    expect(result.current.isAllowed("read", "Article")).toBe(true);
-    expect(result.current.notAllowed("read", "Article")).toBe(false);
-    expect(result.current.isAllowed("write", "Article")).toBe(false);
+    expect(result.current.isAllowed("read", "Article")).toBeTruthy();
+    expect(result.current.notAllowed("read", "Article")).toBeFalsy();
+    expect(result.current.isAllowed("write", "Article")).toBeFalsy();
   });
 
   it('should correctly check permissions defined with "can"', () => {
     testAbility.can("write", "Article");
-    const { getByTestId } = renderAbilityWrapper(
+
+    const ui = renderAbilityWrapper(
       testAbility,
       <TestComponent action="write" resource="Article" checkType="isAllowed" />
     );
-    expect(getByTestId("result").textContent).toBe("Allowed");
+
+    expect(ui.getByTestId("result").textContent).toBe("Allowed");
   });
 
   it('should correctly check permissions defined with "cannot"', () => {
     testAbility.can("write", "Article");
     testAbility.cannot("write", "Article"); // "cannot" overrides "can"
-    const { getByTestId } = renderAbilityWrapper(
+
+    const ui = renderAbilityWrapper(
       testAbility,
       <TestComponent action="write" resource="Article" checkType="isAllowed" />
     );
-    expect(getByTestId("result").textContent).toBe("Not Allowed");
+
+    expect(ui.getByTestId("result").textContent).toBe("Not Allowed");
   });
 
   it("should correctly use notAllowed", () => {
@@ -104,14 +107,18 @@ describe("useAbility Hook and AbilityProvider", () => {
 
     const { result } = renderUseAbilityHook(testAbility);
 
-    expect(result.current.notAllowed("publish", "Article")).toBe(true);
-    expect(result.current.notAllowed("read", "Article")).toBe(false);
+    expect(result.current.notAllowed("publish", "Article")).toBeTruthy();
+    expect(result.current.notAllowed("read", "Article")).toBeFalsy();
   });
 
   it('should handle "manage" and "all" permissions', () => {
     testAbility.can("manage", "Article");
+
     const { result: manageArticleResult } = renderUseAbilityHook(testAbility);
-    expect(manageArticleResult.current.isAllowed("read", "Article")).toBe(true);
+
+    expect(
+      manageArticleResult.current.isAllowed("read", "Article")
+    ).toBeTruthy();
     expect(manageArticleResult.current.isAllowed("write", "Article")).toBe(
       true
     );
@@ -121,15 +128,21 @@ describe("useAbility Hook and AbilityProvider", () => {
 
     const allAbility = createAbility<TestActions, TestResources>();
     allAbility.can("read", "all");
+
     const { result: readAllResult } = renderUseAbilityHook(allAbility);
-    expect(readAllResult.current.isAllowed("read", "Article")).toBe(true);
-    expect(readAllResult.current.isAllowed("read", "Comment")).toBe(true);
+
+    expect(readAllResult.current.isAllowed("read", "Article")).toBeTruthy();
+    expect(readAllResult.current.isAllowed("read", "Comment")).toBeTruthy();
 
     const manageAllAbility = createAbility<TestActions, TestResources>();
     manageAllAbility.can("manage", "all");
+
     const { result: manageAllResult } = renderUseAbilityHook(manageAllAbility);
-    expect(manageAllResult.current.isAllowed("delete", "Comment")).toBe(true);
-    expect(manageAllResult.current.isAllowed("publish", "Article")).toBe(true);
+
+    expect(manageAllResult.current.isAllowed("delete", "Comment")).toBeTruthy();
+    expect(
+      manageAllResult.current.isAllowed("publish", "Article")
+    ).toBeTruthy();
   });
 
   it("should correctly check permissions with conditions", () => {
@@ -144,19 +157,19 @@ describe("useAbility Hook and AbilityProvider", () => {
 
     expect(
       result.current.isAllowed("write", "Article", { authorId: userData.id })
-    ).toBe(true);
+    ).toBeTruthy();
     expect(
       result.current.isAllowed("write", "Article", {
         authorId: otherPost.authorId,
       })
-    ).toBe(false);
-    expect(result.current.isAllowed("publish", "Article", post)).toBe(true);
+    ).toBeFalsy();
+    expect(result.current.isAllowed("publish", "Article", post)).toBeTruthy();
     expect(
       result.current.isAllowed("publish", "Article", {
         authorId: userData.id,
         status: "review",
       })
-    ).toBe(false);
+    ).toBeFalsy();
   });
 
   it("should check against multiple actions or resources", () => {
@@ -165,20 +178,24 @@ describe("useAbility Hook and AbilityProvider", () => {
 
     const { result } = renderUseAbilityHook(testAbility);
 
-    expect(result.current.isAllowed("read", "Article")).toBe(true);
-    expect(result.current.isAllowed("write", "Article")).toBe(true);
-    expect(result.current.isAllowed("delete", "Article")).toBe(false);
+    expect(result.current.isAllowed("read", "Article")).toBeTruthy();
+    expect(result.current.isAllowed("write", "Article")).toBeTruthy();
+    expect(result.current.isAllowed("delete", "Article")).toBeFalsy();
 
-    expect(result.current.isAllowed(["read", "delete"], "Article")).toBe(true); // One of them is allowed
+    expect(
+      result.current.isAllowed(["read", "delete"], "Article")
+    ).toBeTruthy(); // One of them is allowed
     expect(result.current.isAllowed(["delete", "manage"], "Article")).toBe(
       false
     ); // None allowed
 
-    expect(result.current.isAllowed("publish", "Article")).toBe(true);
-    expect(result.current.isAllowed("publish", "Comment")).toBe(true);
-    expect(result.current.isAllowed("publish", "User")).toBe(false); // Assuming User is not TestResource
+    expect(result.current.isAllowed("publish", "Article")).toBeTruthy();
+    expect(result.current.isAllowed("publish", "Comment")).toBeTruthy();
+    expect(result.current.isAllowed("publish", "User")).toBeFalsy(); // Assuming User is not TestResource
 
-    expect(result.current.isAllowed("publish", ["Article", "User"])).toBe(true); // One of them is allowed
+    expect(
+      result.current.isAllowed("publish", ["Article", "User"])
+    ).toBeTruthy(); // One of them is allowed
     expect(result.current.isAllowed("publish", ["User", "Profile"])).toBe(
       false
     );
@@ -201,7 +218,7 @@ describe("useAbility Hook and AbilityProvider", () => {
     console.error = vi.fn(); // Suppress React's error boundary output
 
     const FaultyProvider: FC<PropsWithChildren> = ({ children }) => (
-      // @ts-expect-error
+      // @ts-expect-error - Intentionally passing null to test error handling
       <AbilityProvider ability={null}>{children}</AbilityProvider>
     );
 
@@ -234,16 +251,16 @@ describe("useAbility Hook and AbilityProvider", () => {
       }
     );
 
-    expect(result.current.isAllowed("read", "Article")).toBe(true);
-    expect(result.current.isAllowed("write", "Article")).toBe(false);
+    expect(result.current.isAllowed("read", "Article")).toBeTruthy();
+    expect(result.current.isAllowed("write", "Article")).toBeFalsy();
 
     act(() => {
       currentAbility = newAbility;
       rerender();
     });
 
-    expect(result.current.isAllowed("read", "Article")).toBe(false);
-    expect(result.current.isAllowed("write", "Article")).toBe(true);
+    expect(result.current.isAllowed("read", "Article")).toBeFalsy();
+    expect(result.current.isAllowed("write", "Article")).toBeTruthy();
   });
 
   it("should work with default string actions/resources if not specified", () => {
@@ -257,7 +274,7 @@ describe("useAbility Hook and AbilityProvider", () => {
       ),
     });
 
-    expect(result.current.isAllowed("view", "Dashboard")).toBe(true);
-    expect(result.current.isAllowed("edit", "Dashboard")).toBe(false);
+    expect(result.current.isAllowed("view", "Dashboard")).toBeTruthy();
+    expect(result.current.isAllowed("edit", "Dashboard")).toBeFalsy();
   });
 });

@@ -1,4 +1,4 @@
-import { Condition } from '../types'
+import type { Condition } from '../types'
 import { evaluateFieldOperators } from './evaluateFieldOperators'
 import { compareArrays, compareObjects, getDeepValue } from './utils'
 import { isArray, isRecord } from './guards'

@@ -104,6 +104,7 @@ export type Rule<ExtendedActions extends string, ExtendedResources extends strin
   resource: Resource<ExtendedResources> | Resource<ExtendedResources>[]
   inverted?: boolean
   conditions?: Condition
+  reason?: string
 }
 
 export type CreateAbility<ExtendedActions extends string, ExtendedResources extends string> = {
@@ -111,21 +112,41 @@ export type CreateAbility<ExtendedActions extends string, ExtendedResources exte
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
     conditions?: Condition,
-  ) => CreateAbility<ExtendedActions, ExtendedResources>
+  ) => CreateAbility<ExtendedActions, ExtendedResources> & {
+    reason: (message: string) => CreateAbility<ExtendedActions, ExtendedResources>
+  }
+
   cannot: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
     conditions?: Condition,
-  ) => CreateAbility<ExtendedActions, ExtendedResources>
+  ) => CreateAbility<ExtendedActions, ExtendedResources> & {
+    reason: (message: string) => CreateAbility<ExtendedActions, ExtendedResources>
+  }
+
   isAllowed: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
     conditions?: Condition,
   ) => boolean
+
   notAllowed: (
     action: Action<ExtendedActions> | Action<ExtendedActions>[],
     resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
     conditions?: Condition,
   ) => boolean
+
+  getReason: (
+    action: Action<ExtendedActions> | Action<ExtendedActions>[],
+    resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
+    conditions?: Condition,
+  ) => string | undefined
+
+  throwIfNotAllowed: (
+    action: Action<ExtendedActions> | Action<ExtendedActions>[],
+    resource: Resource<ExtendedResources> | Resource<ExtendedResources>[],
+    conditions?: Condition,
+  ) => void
+
   rules: Rule<ExtendedActions, ExtendedResources>[]
 }

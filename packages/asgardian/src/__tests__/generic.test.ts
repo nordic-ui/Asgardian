@@ -3,7 +3,7 @@ import { describe, it, expectTypeOf, expect } from 'vitest'
 import { createAbility } from '../'
 import type { Action, Resource } from '../types'
 
-describe('Ability', () => {
+describe('Ability Types', () => {
   it('should have default action and resource types', () => {
     const ability = createAbility()
 

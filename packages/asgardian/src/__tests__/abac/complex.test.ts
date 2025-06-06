@@ -33,7 +33,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: false,
               departmentId: 'HR',
             }),
-          ).toBe(true) // user is author
+          ).toBeTruthy() // user is author
         })
       })
 
@@ -47,7 +47,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               departmentId: 'Finance',
               confidential: false,
             }),
-          ).toBe(true) // published, not confidential
+          ).toBeTruthy() // published, not confidential
         })
 
         it('should allow reading confidential posts in same department', () => {
@@ -59,7 +59,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               departmentId: 'HR',
               confidential: true,
             }),
-          ).toBe(true) // confidential but same department
+          ).toBeTruthy() // confidential but same department
         })
 
         it('should deny reading confidential posts from different departments', () => {
@@ -71,7 +71,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               departmentId: 'Finance',
               confidential: true,
             }),
-          ).toBe(false) // different department, confidential
+          ).toBeFalsy() // different department, confidential
         })
 
         it('should deny reading posts from different departments', () => {
@@ -82,7 +82,7 @@ describe('Attribute-Based Access Control (ABAC)', () => {
               published: true,
               departmentId: 'IT',
             }),
-          ).toBe(false) // published but different department
+          ).toBeFalsy() // published but different department
         })
       })
     })

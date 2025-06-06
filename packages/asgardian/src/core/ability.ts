@@ -1,5 +1,6 @@
 import type { Action, CreateAbility, Resource, Rule } from '../types'
 import { checkConditionValue } from './checkConditionValue'
+import { ForbiddenError } from './errors'
 import { isArray } from './guards'
 
 /**
@@ -20,9 +21,24 @@ export const createAbility = <
   const rules: Rule<ExtendedActions, ExtendedResources>[] = []
   const self = {} as CreateAbility<ExtendedActions, ExtendedResources>
 
+  const _createReasonMethod = (ruleIndices: number[]) => ({
+    reason: (message: string) => {
+      // Apply reason to all rules created in the last operation
+      ruleIndices.forEach((index) => {
+        if (rules[index]) {
+          rules[index].reason = message
+        }
+      })
+      return self
+    },
+  })
+
+  // Define if action on resource is allowed
   self.can = (action, resource, conditions) => {
     const actions = isArray(action) ? action : [action]
     const resources = isArray(resource) ? resource : [resource]
+
+    const newRuleIndices: number[] = []
 
     // Create a rule for each combination of action and resource
     for (const act of actions) {
@@ -32,15 +48,19 @@ export const createAbility = <
           resource: res,
           conditions,
         })
+        newRuleIndices.push(rules.length - 1)
       }
     }
 
-    return self
+    return Object.assign(self, _createReasonMethod(newRuleIndices))
   }
 
+  // Define if action on resource is not allowed
   self.cannot = (action, resource, conditions) => {
     const actions = isArray(action) ? action : [action]
     const resources = isArray(resource) ? resource : [resource]
+
+    const newRuleIndices: number[] = []
 
     // Create a rule for each combination of action and resource
     for (const act of actions) {
@@ -51,12 +71,14 @@ export const createAbility = <
           inverted: true,
           conditions,
         })
+        newRuleIndices.push(rules.length - 1)
       }
     }
 
-    return self
+    return Object.assign(self, _createReasonMethod(newRuleIndices))
   }
 
+  // Determine if an action on a resource is allowed
   self.isAllowed = (action, resource, conditions) => {
     const actionsToCheck = isArray(action) ? action : [action]
     const resourcesToCheck = isArray(resource) ? resource : [resource]
@@ -100,8 +122,60 @@ export const createAbility = <
     return result.isAllowed
   }
 
+  // Determine if an action on a resource is not allowed
   self.notAllowed = (action, resource, conditions) => !self.isAllowed(action, resource, conditions)
 
+  // Get the reason for the last rule that matched the action and resource
+  self.getReason = (action, resource, conditions) => {
+    const actionsToCheck = isArray(action) ? action : [action]
+    const resourcesToCheck = isArray(resource) ? resource : [resource]
+
+    // Function to check if a rule matches the action and resource
+    const ruleMatches = (
+      rule: Rule<ExtendedActions, ExtendedResources>,
+      actions: Action<ExtendedActions>[],
+      resources: Resource<ExtendedResources>[],
+    ) => {
+      const ruleActions = isArray(rule.action) ? rule.action : [rule.action]
+      let resourceMatches = false
+
+      resourceMatches = rule.resource === resource
+
+      if (rule.resource === 'all' || resources?.some((res) => rule.resource === res)) {
+        resourceMatches = true
+      }
+
+      return (
+        resourceMatches &&
+        actions.some((act) => ruleActions.includes(act) || ruleActions.includes('manage'))
+      )
+    }
+
+    // Find the last matching rule (rules are processed in order, last one wins)
+    let matchingRule: Rule<ExtendedActions, ExtendedResources> | undefined
+
+    for (const rule of rules) {
+      if (ruleMatches(rule, actionsToCheck, resourcesToCheck)) {
+        const conditionsMatch = !rule.conditions || checkConditionValue(rule.conditions, conditions)
+
+        if (conditionsMatch) {
+          matchingRule = rule
+        }
+      }
+    }
+
+    return matchingRule?.reason
+  }
+
+  // Throw an error if the action on the resource is not allowed
+  self.throwIfNotAllowed = (action, resource, conditions) => {
+    if (!self.isAllowed(action, resource, conditions)) {
+      const reason = self.getReason(action, resource, conditions)
+      throw new ForbiddenError(reason || 'Access denied')
+    }
+  }
+
+  // Get all rules
   self.rules = rules
 
   return self
