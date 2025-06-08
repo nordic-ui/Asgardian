@@ -29,6 +29,7 @@ Asgardian is a powerful permission management system for TypeScript applications
 This monorepo contains the following packages:
 
 - [@nordic-ui/asgardian](packages/asgardian) - The core permission system
+- [@nordic-ui/asgardian-react](packages/asgardian-react) - React hooks library
 - [Docs](apps/docs) - Documentation site built with Next.js
 
 ## Installation
