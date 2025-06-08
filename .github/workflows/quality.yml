@@ -13,8 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
