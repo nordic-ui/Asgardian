@@ -22,7 +22,7 @@ Asgardian is a powerful permission management system for TypeScript applications
 - Resource-based access control
 - Role-based access control
 - Time-based permissions
-- React integration (Coming soon)
+- React integration
 
 ## Packages
 
